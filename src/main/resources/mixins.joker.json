@@ -1,0 +1,16 @@
+{
+  "compatibilityLevel": "JAVA_8",
+  "package": "com.dikiytechies.joker.mixin",
+  "refmap": "mixins.joker.refmap.json",
+  "minVersion": "0.8",
+  "mixins": [
+    "JokerOverridesHamonMixin",
+    "JokerOverridesPillarmanMixin",
+    "JokerOverridesVampirismMixin",
+    "JokerOverridesZombieMixin",
+    "PillarmanPowerTypeFixerMixin"
+  ],
+  "client": [
+
+  ]
+}
