@@ -1,6 +1,6 @@
 package com.dikiytechies.joker.mixin;
 
-import com.dikiytechies.joker.init.JokerPowerInit;
+import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
 import com.github.standobyte.jojo.power.impl.nonstand.type.zombie.ZombiePowerType;
 import org.spongepowered.asm.mixin.Mixin;

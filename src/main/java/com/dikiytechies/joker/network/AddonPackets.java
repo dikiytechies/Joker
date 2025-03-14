@@ -3,6 +3,7 @@ package com.dikiytechies.joker.network;
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerDataPacket;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerPreviousPowerDataSaverPacket;
+import com.dikiytechies.joker.network.packets.fromserver.TrSociopathyPacket;
 import com.github.standobyte.jojo.network.packets.IModPacketHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -31,6 +32,7 @@ public class AddonPackets {
 
         registerMessage(channel, new TrJokerDataPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrJokerPreviousPowerDataSaverPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        registerMessage(channel, new TrSociopathyPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     private static <MSG> void registerMessage(SimpleChannel channel, IModPacketHandler<MSG> handler, Optional<NetworkDirection> networkDirection) {

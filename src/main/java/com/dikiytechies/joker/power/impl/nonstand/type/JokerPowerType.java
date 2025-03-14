@@ -1,14 +1,20 @@
 package com.dikiytechies.joker.power.impl.nonstand.type;
 
-import com.dikiytechies.joker.init.JokerPowerInit;
+import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.github.standobyte.jojo.action.Action;
+import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
+import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.HamonPowerType;
+import com.github.standobyte.jojo.power.impl.nonstand.type.vampirism.VampirismPowerType;
 import com.github.standobyte.jojo.power.impl.stand.IStandPower;
 import com.github.standobyte.jojo.util.mod.JojoModUtil;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -68,20 +74,31 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     @Override
     public void onLeap(INonStandPower power) {
         LivingEntity entity = power.getUser();
-            entity.hurt(new DamageSource("injure"), 3.5f);
-            entity.hurtMarked = false;
+        if (!power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getPreviousPowerType).isPresent() && ((power.getUser() instanceof PlayerEntity && !((PlayerEntity) power.getUser()).abilities.instabuild) || !(power.getUser() instanceof PlayerEntity)))
+            entity.hurt(new EntityDamageSource("injure", power.getUser()).bypassArmor().bypassInvul().bypassMagic(), 3.5f);
+        entity.hurtMarked = false;
     }
 
 
     @Override
     public float getLeapStrength(INonStandPower power) {
-        return 2.5f;
+        if (power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getPreviousPowerType).isPresent()) {
+            NonStandPowerType<?> oldPower = power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getPreviousPowerType).get();
+            if (oldPower == ModPowers.HAMON.get()) {
+                return 2.5f;
+            } else if (oldPower == ModPowers.PILLAR_MAN.get()) {
+                return 1.5f;
+            } else if (oldPower == ModPowers.VAMPIRISM.get()) {
+                return 2.0f;
+            } else if (oldPower == ModPowers.ZOMBIE.get()) {
+                return 1.2f;
+            }
+        }
+        return 2.0f;
     }
 
     @Override
-    public int getLeapCooldownPeriod() {
-        return 25;
-    }
+    public int getLeapCooldownPeriod() { return 25; }
     @Override
     public boolean isReplaceableWith(NonStandPowerType<?> newType) {
         return false;
@@ -89,7 +106,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
 
     @Override
     public boolean keepOnDeath(INonStandPower power) {
-        return false;
+        return true;
     }
     @Override
     public ResourceLocation getIconTexture(@Nullable INonStandPower power) {

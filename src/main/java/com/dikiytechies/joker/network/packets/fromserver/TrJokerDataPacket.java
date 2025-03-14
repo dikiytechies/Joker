@@ -1,6 +1,6 @@
 package com.dikiytechies.joker.network.packets.fromserver;
 
-import com.dikiytechies.joker.init.JokerPowerInit;
+import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.github.standobyte.jojo.client.ClientUtil;
 import com.github.standobyte.jojo.network.packets.IModPacketHandler;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;

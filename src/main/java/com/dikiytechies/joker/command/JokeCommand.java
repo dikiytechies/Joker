@@ -1,6 +1,6 @@
 package com.dikiytechies.joker.command;
 
-import com.dikiytechies.joker.init.JokerPowerInit;
+import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;

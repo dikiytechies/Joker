@@ -4,9 +4,9 @@ import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerDataPacket;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerPreviousPowerDataSaverPacket;
+import com.dikiytechies.joker.network.packets.fromserver.TrSociopathyPacket;
 import com.github.standobyte.jojo.init.power.JojoCustomRegistries;
 import com.github.standobyte.jojo.power.IPowerType;
-import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import com.github.standobyte.jojo.power.impl.nonstand.TypeSpecificData;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
 import net.minecraft.entity.LivingEntity;
@@ -22,7 +22,8 @@ public class JokerData extends TypeSpecificData {
     private int stage;
     private NonStandPowerType<?> previousPowerType;
     private TypeSpecificData oldData;
-
+    private boolean isSociopathyEnabled;
+//TODO previous data saving + previous data buffs
     @Override
     public void onPowerGiven(@Nullable NonStandPowerType<?> oldType, @Nullable TypeSpecificData oldData) {
         if (!power.getUser().level.isClientSide()) {
@@ -34,6 +35,7 @@ public class JokerData extends TypeSpecificData {
     }
 
     public void setPreviousPowerType(NonStandPowerType<?> power) {this.previousPowerType = power; }
+    public NonStandPowerType<?> getPreviousPowerType() { return this.previousPowerType; }
     public void setPreviousData(TypeSpecificData data) { this.oldData = data; }
     public void setStage(int stage) {
         this.stage = stage;
@@ -41,12 +43,27 @@ public class JokerData extends TypeSpecificData {
     public int getStage() {
         return stage;
     }
+    public boolean toggleSociopathy() {
+        setSociopathy(!isSociopathyEnabled);
+        return isSociopathyEnabled;
+    }
+    public boolean isSociopathyEnabled() { return isSociopathyEnabled; }
+    public void setSociopathy(boolean isEnabled) {
+        if (this.isSociopathyEnabled != isEnabled) {
+            this.isSociopathyEnabled = isEnabled;
+            LivingEntity user = power.getUser();
+            if (!user.level.isClientSide()) {
+                AddonPackets.sendToClientsTrackingAndSelf(new TrSociopathyPacket(user.getId(), this), user);
+            }
+        }
+    }
+
     @Override
     public CompoundNBT writeNBT() {
         CompoundNBT nbt = new CompoundNBT();
         nbt.putInt("Stage", stage);
         if (previousPowerType != null) nbt.putString("PreviousPowerType", JojoCustomRegistries.NON_STAND_POWERS.getKeyAsString(previousPowerType));
-        if (previousPowerType != null) {
+        if (previousPowerType != null && oldData != null) {
             nbt.put("PreviousData", (oldData).writeNBT());
         }
         return nbt;
@@ -59,12 +76,12 @@ public class JokerData extends TypeSpecificData {
         String powerName = nbt.getString("PreviousPowerType");
         if (powerName != IPowerType.NO_POWER_NAME) {
             previousPowerType = powerTypeRegistry.getValue(new ResourceLocation(powerName));
-            if (previousPowerType != null) {
-                oldData = INonStandPower.getNonStandPowerOptional(this.power.getUser()).map(p -> p.getTypeSpecificData(previousPowerType).map(d -> {
-                    d.readNBT(nbt.getCompound("PreviousData"));
-                    return d;
-                }).get()).get();
-            }
+//            if (previousPowerType != null) {
+//                oldData = INonStandPower.getNonStandPowerOptional(this.power.getUser()).map(p -> p.getTypeSpecificData(previousPowerType).map(d -> {
+//                    d.readNBT(nbt.getCompound("PreviousData"));
+//                    return d;
+//                }).get()).get();
+//            }
         }
     }//data get entity Dev ForgeCaps."jojo:non_stand".AdditionalData
 
@@ -74,6 +91,6 @@ public class JokerData extends TypeSpecificData {
     @Override
     public void syncWithTrackingOrUser(LivingEntity user, ServerPlayerEntity entity) {
         AddonPackets.sendToClient(TrJokerDataPacket.stage(user.getId(), stage), entity);
-        AddonPackets.sendToClient(new TrJokerPreviousPowerDataSaverPacket(user.getId(), previousPowerType, oldData), entity);
+        AddonPackets.sendToClient(new TrJokerPreviousPowerDataSaverPacket(user.getId(), previousPowerType/*, oldData*/), entity);
     }
 }
