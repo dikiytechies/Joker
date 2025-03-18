@@ -7,7 +7,6 @@ import com.dikiytechies.joker.network.packets.fromserver.TrJokerPreviousPowerDat
 import com.dikiytechies.joker.network.packets.fromserver.TrSociopathyPacket;
 import com.github.standobyte.jojo.init.power.JojoCustomRegistries;
 import com.github.standobyte.jojo.power.IPowerType;
-import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import com.github.standobyte.jojo.power.impl.nonstand.TypeSpecificData;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
 import net.minecraft.entity.LivingEntity;
@@ -24,13 +23,11 @@ public class JokerData extends TypeSpecificData {
     private NonStandPowerType<?> previousPowerType;
     private TypeSpecificData oldData;
     private boolean isSociopathyEnabled;
-//TODO previous data saving + previous data buffs
+//TODO previous data buffs + vampirism zombie minion aggro fix
     @Override
     public void onPowerGiven(@Nullable NonStandPowerType<?> oldType, @Nullable TypeSpecificData oldData) {
-        if (!power.getUser().level.isClientSide()) {
-            this.previousPowerType = oldType;
-            this.oldData = oldData;
-        }
+        this.previousPowerType = oldType;
+        this.oldData = oldData;
         super.onPowerGiven(oldType, oldData);
         power.setEnergy(0);
     }
@@ -38,6 +35,8 @@ public class JokerData extends TypeSpecificData {
     public void setPreviousPowerType(NonStandPowerType<?> power) {this.previousPowerType = power; }
     public NonStandPowerType<?> getPreviousPowerType() { return this.previousPowerType; }
     public void setPreviousData(TypeSpecificData data) { this.oldData = data; }
+    public TypeSpecificData getPreviousData() { return this.oldData; }
+    public CompoundNBT getPreviousDataNbt() { return this.oldData.writeNBT(); }
     public void setStage(int stage) {
         this.stage = stage;
     }

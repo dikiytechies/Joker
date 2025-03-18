@@ -4,7 +4,6 @@ import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.action.non_stand.JokerAction;
 import com.dikiytechies.joker.action.non_stand.JokerSociopathy;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerPowerType;
-import com.github.standobyte.jojo.JojoMod;
 import com.github.standobyte.jojo.action.Action;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
 import net.minecraftforge.fml.RegistryObject;
@@ -29,6 +28,6 @@ public class JokerPowerInit {
             new JokerAction[] {
                     SOCIOPATHY.get()
             },
-            SOCIOPATHY.get()
+            null
     ));
 }

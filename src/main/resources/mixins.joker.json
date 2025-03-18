@@ -8,6 +8,8 @@
     "JokerOverridesPillarmanMixin",
     "JokerOverridesVampirismMixin",
     "JokerOverridesZombieMixin",
+    "JokerVampirismCureSkipMixin",
+    "MakeJokerUndeadMixin",
     "PillarmanPowerTypeFixerMixin"
   ],
   "client": [

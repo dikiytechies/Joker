@@ -3,16 +3,12 @@ package com.dikiytechies.joker.util;
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
-import com.dikiytechies.joker.power.impl.nonstand.type.JokerPowerType;
 import com.github.standobyte.jojo.entity.stand.StandEntity;
-import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
-import com.github.standobyte.jojo.power.impl.nonstand.NonStandPower;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.potion.Effects;
-import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -25,7 +21,6 @@ public class GameplayEventHandler {
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingHurt(LivingDamageEvent event) {
-        System.out.println(event.getEntityLiving().getHealth() + " " + event.getAmount());
         consumeOrGiveEnergyFromSociopathy(event);
     }
     private static void consumeOrGiveEnergyFromSociopathy(LivingDamageEvent event) {
