@@ -7,6 +7,7 @@ import com.dikiytechies.joker.network.packets.fromserver.TrJokerPreviousPowerDat
 import com.dikiytechies.joker.network.packets.fromserver.TrSociopathyPacket;
 import com.github.standobyte.jojo.init.power.JojoCustomRegistries;
 import com.github.standobyte.jojo.power.IPowerType;
+import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import com.github.standobyte.jojo.power.impl.nonstand.TypeSpecificData;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
 import net.minecraft.entity.LivingEntity;
@@ -63,7 +64,7 @@ public class JokerData extends TypeSpecificData {
         CompoundNBT nbt = new CompoundNBT();
         nbt.putInt("Stage", stage);
         if (previousPowerType != null) nbt.putString("PreviousPowerType", JojoCustomRegistries.NON_STAND_POWERS.getKeyAsString(previousPowerType));
-        if (previousPowerType != null && oldData != null) {
+        if (oldData != null) {
             nbt.put("PreviousData", (oldData).writeNBT());
         }
         return nbt;
@@ -74,14 +75,13 @@ public class JokerData extends TypeSpecificData {
         stage = nbt.getInt("Stage");
         IForgeRegistry<NonStandPowerType<?>> powerTypeRegistry = JojoCustomRegistries.NON_STAND_POWERS.getRegistry();
         String powerName = nbt.getString("PreviousPowerType");
-        if (powerName != IPowerType.NO_POWER_NAME) {
+        if (!powerName.equals(IPowerType.NO_POWER_NAME)) {
             previousPowerType = powerTypeRegistry.getValue(new ResourceLocation(powerName));
-//            if (previousPowerType != null) {
-//                oldData = INonStandPower.getNonStandPowerOptional(this.power.getUser()).map(p -> p.getTypeSpecificData(previousPowerType).map(d -> {
-//                    d.readNBT(nbt.getCompound("PreviousData"));
-//                    return d;
-//                }).get()).get();
-//            }
+            if (previousPowerType != null) {
+                CompoundNBT oldDataNBT = nbt.getCompound("PreviousData");
+                oldData = previousPowerType.newSpecificDataInstance();
+                oldData.readNBT(oldDataNBT);
+            }
         }
     }//data get entity Dev ForgeCaps."jojo:non_stand".AdditionalData
 
@@ -91,6 +91,6 @@ public class JokerData extends TypeSpecificData {
     @Override
     public void syncWithTrackingOrUser(LivingEntity user, ServerPlayerEntity entity) {
         AddonPackets.sendToClient(TrJokerDataPacket.stage(user.getId(), stage), entity);
-        AddonPackets.sendToClient(new TrJokerPreviousPowerDataSaverPacket(user.getId(), previousPowerType/*, oldData*/), entity);
+        AddonPackets.sendToClient(new TrJokerPreviousPowerDataSaverPacket(user.getId(), previousPowerType, oldData), entity);
     }
 }

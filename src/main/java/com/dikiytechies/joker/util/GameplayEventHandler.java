@@ -12,10 +12,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.potion.Effects;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -27,15 +24,11 @@ public class GameplayEventHandler {
 
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
-    public static void onLivingHurtStart(LivingAttackEvent event) {
-
-    }
-    @SubscribeEvent(priority = EventPriority.NORMAL)
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingHurt(LivingDamageEvent event) {
         System.out.println(event.getEntityLiving().getHealth() + " " + event.getAmount());
         consumeOrGiveEnergyFromSociopathy(event);
     }
-    private static void consumeOrGiveEnergyFromSociopathy(LivingHurtEvent event) {
+    private static void consumeOrGiveEnergyFromSociopathy(LivingDamageEvent event) {
         LivingEntity entity = event.getEntityLiving();
         Entity hurtingEntity = event.getSource().getEntity();
         boolean isStand = false;
