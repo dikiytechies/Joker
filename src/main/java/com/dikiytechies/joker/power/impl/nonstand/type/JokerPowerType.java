@@ -54,7 +54,6 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     public void tickUser(LivingEntity entity, INonStandPower power) {
         if (INonStandPower.getNonStandPowerOptional(power.getUser()).isPresent()) {
             if (power.getEnergy() == power.getMaxEnergy() && INonStandPower.getNonStandPowerOptional(power.getUser()).map(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getStage)).get().get() != 3) {
-                System.out.println(INonStandPower.getNonStandPowerOptional(power.getUser()).map(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(joker -> joker.getStage()).get()).get());
                 INonStandPower.getNonStandPowerOptional(power.getUser()).ifPresent(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(joker -> joker.setStage(joker.getStage() + 1)));
             }
         }
@@ -156,7 +155,6 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     @Override
     public boolean isActionLegalInHud(Action<INonStandPower> action, INonStandPower power) {
         JokerData data = power.getTypeSpecificData(this).get();
-        System.out.println(data.getPreviousData());
         if (data.getPreviousPowerType() == ModPowers.HAMON.get()) {
 
         } else if (data.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {
