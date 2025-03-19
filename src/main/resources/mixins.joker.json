@@ -4,6 +4,7 @@
   "refmap": "mixins.joker.refmap.json",
   "minVersion": "0.8",
   "mixins": [
+    "HungryZombieEntityMixin",
     "JokerOverridesHamonMixin",
     "JokerOverridesPillarmanMixin",
     "JokerOverridesVampirismMixin",

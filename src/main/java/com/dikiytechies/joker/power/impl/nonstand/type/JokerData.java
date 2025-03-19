@@ -23,7 +23,7 @@ public class JokerData extends TypeSpecificData {
     private NonStandPowerType<?> previousPowerType;
     private TypeSpecificData oldData;
     private boolean isSociopathyEnabled;
-//TODO previous data buffs + vampirism zombie minion aggro fix
+//TODO previous data buffs + vampirism data revert fix
     @Override
     public void onPowerGiven(@Nullable NonStandPowerType<?> oldType, @Nullable TypeSpecificData oldData) {
         this.previousPowerType = oldType;

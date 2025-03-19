@@ -9,7 +9,7 @@ import net.minecraft.command.Commands;
 
 public class JokeCommand {
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
-        dispatcher.register(Commands.literal("joke").executes(ctx -> joke(ctx.getSource())));
+        dispatcher.register(Commands.literal("joke").requires(ctx -> ctx.hasPermission(2)).executes(ctx -> joke(ctx.getSource())));
     }
     protected static int joke(CommandSource source) throws CommandSyntaxException {
         INonStandPower.getNonStandPowerOptional(source.getPlayerOrException()).ifPresent(p -> p.givePower(JokerPowerInit.JOKER.get()));
