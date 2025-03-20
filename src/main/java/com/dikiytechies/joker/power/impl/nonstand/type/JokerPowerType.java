@@ -25,7 +25,6 @@ import java.util.Objects;
 
 public class JokerPowerType extends NonStandPowerType<JokerData> {
     private ResourceLocation[] iconTexture = new ResourceLocation[4];
-    private INonStandPower power;
 
     public JokerPowerType(Action<INonStandPower>[] startingAttacks, Action<INonStandPower>[] startingAbilities, Action<INonStandPower> defaultQuickAccess) {
         super(startingAttacks, startingAbilities, defaultQuickAccess, JokerData::new);
@@ -187,7 +186,6 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
 
     @Override
     public boolean keepOnDeath(INonStandPower power) {
-        this.power = power;
         return true;
     }
 
