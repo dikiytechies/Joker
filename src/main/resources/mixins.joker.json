@@ -3,7 +3,18 @@
   "package": "com.dikiytechies.joker.mixin",
   "refmap": "mixins.joker.refmap.json",
   "minVersion": "0.8",
-  "mixins": ["ClientEventHandlerMixin","HungryZombieEntityMixin","JokerOverridesHamonMixin","JokerOverridesPillarmanMixin","JokerOverridesVampirismMixin","JokerOverridesZombieMixin","JokerVampirismCureSkipMixin","MakeJokerUndeadMixin","PillarmanPowerTypeFixerMixin","VampirismUtilMixin"],
+  "mixins": [
+    "ClientEventHandlerMixin",
+    "HungryZombieEntityMixin",
+    "JokerOverridesHamonMixin",
+    "JokerOverridesPillarmanMixin",
+    "JokerOverridesVampirismMixin",
+    "JokerOverridesZombieMixin",
+    "JokerVampirismCureSkipMixin",
+    "MakeJokerUndeadMixin",
+    "PillarmanPowerTypeFixerMixin",
+    "VampirismUtilMixin"
+  ],
   "client": [
 
   ]
