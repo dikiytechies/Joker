@@ -13,7 +13,8 @@
     "JokerVampirismCureSkipMixin",
     "MakeJokerUndeadMixin",
     "PillarmanPowerTypeFixerMixin",
-    "VampirismUtilMixin"
+    "VampirismUtilMixin",
+    "ZombieDevourMixin"
   ],
   "client": [
 

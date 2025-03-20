@@ -59,7 +59,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             if (power.getEnergy() == power.getMaxEnergy() && INonStandPower.getNonStandPowerOptional(power.getUser()).map(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getStage)).get().get() != 3) {
                 INonStandPower.getNonStandPowerOptional(power.getUser()).ifPresent(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(joker -> joker.setStage(joker.getStage() + 1)));
             }
-            if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get()).orElse(false)).orElse(false)) vampirismTick(entity, power);
+            if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get() || d.getPreviousPowerType() == ModPowers.ZOMBIE.get()).orElse(false)).orElse(false)) vampirismTick(entity, power);
         }
     }
     private void vampirismTick(LivingEntity entity, INonStandPower power) {
@@ -80,7 +80,10 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
         if (difficulty == 0) {
             return -1;
         }
-        int bloodLevel = Math.min((int) (power.getEnergy() / power.getMaxEnergy() * 5F), 4);
+        float powerMultiplier = 1.0f;
+        if (power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get()).orElse(false)) powerMultiplier = 5.0f;
+        if (power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.ZOMBIE.get()).orElse(false)) powerMultiplier = 7.5f;
+        int bloodLevel = Math.min((int) (power.getEnergy() / power.getMaxEnergy() * powerMultiplier), 4);
         bloodLevel += difficulty;
         if (!power.getTypeSpecificData(JokerPowerInit.JOKER.get()).get().getPreviousDataNbt().getBoolean("VampireFullPower")) {
             bloodLevel = Math.max(bloodLevel - 2, 1);
@@ -90,7 +93,9 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
 
     @Override
     public float tickEnergy(INonStandPower power) {
-        if (power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get()).orElse(false)) {
+        if (power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d ->
+                d.getPreviousPowerType() == ModPowers.VAMPIRISM.get() ||
+                d.getPreviousPowerType() == ModPowers.ZOMBIE.get()).orElse(false)) {
             World world = power.getUser().level;
             float inc = -GeneralUtil.getOrLast(
                             JojoModConfig.getCommonConfigInstance(world.isClientSide()).bloodTickDown.get(), world.getDifficulty().getId())
@@ -175,6 +180,15 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             if (effect == Effects.JUMP) return bloodLevel - 4;
             if (effect == Effects.NIGHT_VISION) return 0;
             return -1;
+        } else if (jokerData.getPreviousPowerType() == ModPowers.ZOMBIE.get()) {
+            int difficulty = entity.level.getDifficulty().getId();
+            int bloodLevel = bloodLevel(power, difficulty);
+            if (effect == Effects.HEALTH_BOOST)                                 return difficulty * 2;
+            if (effect == Effects.DAMAGE_BOOST)                                 return bloodLevel - 5;
+            if (effect == Effects.MOVEMENT_SPEED)                               return bloodLevel - 5;
+            if (effect == Effects.DIG_SPEED)                                    return bloodLevel - 5;
+            if (effect == Effects.JUMP)                                         return bloodLevel - 5;
+            if (effect == Effects.NIGHT_VISION)                                 return 0;
         }
         return -1;
     }
@@ -210,10 +224,8 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             }
             if (data.getPreviousDataNbt().getBoolean("VampireHamonUser")) controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModVampirismActions.VAMPIRISM_HAMON_SUICIDE.get());
         } else if (data.getPreviousPowerType() == ModPowers.ZOMBIE.get()) {
-            controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModZombieActions.ZOMBIE_CLAW_LACERATE.get());
+            controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModVampirismActions.VAMPIRISM_CLAW_LACERATE.get());
             controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModZombieActions.ZOMBIE_DEVOUR.get());
-
-            controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModZombieActions.ZOMBIE_DISGUISE.get());
         }
     }
 
@@ -235,9 +247,8 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             (data.getPreviousDataNbt().getBoolean("VampireHamonUser") && action == ModVampirismActions.VAMPIRISM_HAMON_SUICIDE.get())) return true;
         } else if (data.getPreviousPowerType() == ModPowers.ZOMBIE.get()) {
             if (
-            action == ModZombieActions.ZOMBIE_CLAW_LACERATE.get() ||
-            action == ModZombieActions.ZOMBIE_DEVOUR.get() ||
-            action == ModZombieActions.ZOMBIE_DISGUISE.get()) return true;
+            action == ModVampirismActions.VAMPIRISM_CLAW_LACERATE.get() ||
+            action == ModZombieActions.ZOMBIE_DEVOUR.get()) return true;
         }
         return super.isActionLegalInHud(action, power);
     }

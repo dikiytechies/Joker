@@ -31,6 +31,8 @@ public abstract class VampirismUtilMixin {
     public static float healCost(World world) {
         return 0;
     }
+//    @author d
+//    @reason s
     @Overwrite
     private static void makeMobNeutralToVampirePlayers(MobEntity mob) {
         if (JojoModConfig.getCommonConfigInstance(false).vampiresAggroMobs.get()) return;
