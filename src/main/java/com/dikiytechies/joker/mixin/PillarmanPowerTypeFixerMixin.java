@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(PillarmanPowerType.class)
+@Mixin(value = PillarmanPowerType.class, remap = false)
 public abstract class PillarmanPowerTypeFixerMixin {
     @Inject(method = "tickUser(Lnet/minecraft/entity/LivingEntity;Lcom/github/standobyte/jojo/power/impl/nonstand/INonStandPower;)V", at = @At(value = "HEAD"), cancellable = true, remap = false)
     public void exceptionFixer(LivingEntity entity, INonStandPower power, CallbackInfo ci) {

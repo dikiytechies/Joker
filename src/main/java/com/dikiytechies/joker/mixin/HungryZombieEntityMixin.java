@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
-@Mixin(HungryZombieEntity.class)
+@Mixin(value = HungryZombieEntity.class, remap = false)
 public abstract class HungryZombieEntityMixin extends ZombieEntity {
     @Shadow @Nullable protected abstract UUID getOwnerUUID();
 

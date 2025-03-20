@@ -8,12 +8,11 @@ import com.github.standobyte.jojo.action.non_stand.VampirismAction;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(VampirismAction.class)
+@Mixin(value = VampirismAction.class, remap = false)
 public abstract class JokerVampirismCureSkipMixin extends NonStandAction {
 
     public JokerVampirismCureSkipMixin(AbstractBuilder<?> builder) {

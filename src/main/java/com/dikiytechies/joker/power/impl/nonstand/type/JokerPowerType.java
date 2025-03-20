@@ -1,6 +1,7 @@
 package com.dikiytechies.joker.power.impl.nonstand.type;
 
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
+import com.github.standobyte.jojo.JojoModConfig;
 import com.github.standobyte.jojo.action.Action;
 import com.github.standobyte.jojo.client.controls.ControlScheme;
 import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
@@ -9,15 +10,18 @@ import com.github.standobyte.jojo.init.power.non_stand.zombie.ModZombieActions;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
 import com.github.standobyte.jojo.power.impl.stand.IStandPower;
+import com.github.standobyte.jojo.util.general.GeneralUtil;
 import com.github.standobyte.jojo.util.mod.JojoModUtil;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.potion.Effect;
+import net.minecraft.potion.Effects;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 public class JokerPowerType extends NonStandPowerType<JokerData> {
     private ResourceLocation[] iconTexture = new ResourceLocation[4];
@@ -56,11 +60,47 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             if (power.getEnergy() == power.getMaxEnergy() && INonStandPower.getNonStandPowerOptional(power.getUser()).map(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getStage)).get().get() != 3) {
                 INonStandPower.getNonStandPowerOptional(power.getUser()).ifPresent(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(joker -> joker.setStage(joker.getStage() + 1)));
             }
+            if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get()).orElse(false)).orElse(false)) vampirismTick(entity, power);
         }
+    }
+    private void vampirismTick(LivingEntity entity, INonStandPower power) {
+        if (!entity.level.isClientSide()) {
+            if (entity instanceof PlayerEntity) {
+                ((PlayerEntity) entity).getFoodData().setFoodLevel(17);
+            }
+            entity.setAirSupply(entity.getMaxAirSupply());
+
+            int difficulty = entity.level.getDifficulty().getId();
+            int bloodLevel = bloodLevel(power, difficulty);
+            if (power.getTypeSpecificData(JokerPowerInit.JOKER.get()).get().refreshVampBloodLevel(bloodLevel)) {
+                updatePassiveEffects(entity, power);
+            }
+        }
+    }
+    private static int bloodLevel(INonStandPower power, int difficulty) {
+        if (difficulty == 0) {
+            return -1;
+        }
+        int bloodLevel = Math.min((int) (power.getEnergy() / power.getMaxEnergy() * 5F), 4);
+        bloodLevel += difficulty;
+        if (!power.getTypeSpecificData(JokerPowerInit.JOKER.get()).get().getPreviousDataNbt().getBoolean("VampireFullPower")) {
+            bloodLevel = Math.max(bloodLevel - 2, 1);
+        }
+        return bloodLevel;
     }
 
     @Override
     public float tickEnergy(INonStandPower power) {
+        if (power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get()).orElse(false)) {
+            World world = power.getUser().level;
+            float inc = -GeneralUtil.getOrLast(
+                            JojoModConfig.getCommonConfigInstance(world.isClientSide()).bloodTickDown.get(), world.getDifficulty().getId())
+                    .floatValue();
+            if (power.isUserCreative()) {
+                inc = Math.max(inc, 0);
+            }
+            return power.getEnergy() + inc;
+        }
         return power.getEnergy();
     }
 
@@ -106,11 +146,38 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
 
     @Override
     protected void initPassiveEffects() {
-        if (this.power != null) {
-            while(power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getPreviousPowerType).get().getAllPossibleEffects().iterator().hasNext()) {
-                initAllPossibleEffects(() -> power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getPreviousPowerType).get().getAllPossibleEffects().iterator().next());
-            }
+        initAllPossibleEffects(
+                () -> Effects.HEALTH_BOOST,
+                () -> Effects.REGENERATION,
+                () -> Effects.DAMAGE_BOOST,
+                () -> Effects.MOVEMENT_SPEED,
+                () -> Effects.DIG_SPEED,
+                () -> Effects.JUMP,
+                () -> Effects.NIGHT_VISION,
+
+                () -> Effects.MOVEMENT_SLOWDOWN,
+                () -> Effects.DIG_SLOWDOWN,
+                () -> Effects.WEAKNESS,
+                () -> Effects.BLINDNESS);
+    }
+    @Override
+    public int getPassiveEffectLevel(Effect effect, INonStandPower power) {
+        LivingEntity entity = power.getUser();
+        JokerData jokerData = power.getTypeSpecificData(this).get();
+        if (jokerData.getPreviousPowerType() == ModPowers.VAMPIRISM.get()) {
+            int difficulty = entity.level.getDifficulty().getId();
+            int bloodLevel = bloodLevel(power, difficulty);
+
+            if (effect == Effects.HEALTH_BOOST) return difficulty * 5 - 1;
+            if (effect == Effects.REGENERATION) return Math.min(bloodLevel - 2, 4);
+            if (effect == Effects.DAMAGE_BOOST) return bloodLevel - 5;
+            if (effect == Effects.MOVEMENT_SPEED) return bloodLevel - 4;
+            if (effect == Effects.DIG_SPEED) return bloodLevel - 4;
+            if (effect == Effects.JUMP) return bloodLevel - 4;
+            if (effect == Effects.NIGHT_VISION) return 0;
+            return -1;
         }
+        return -1;
     }
 
     @Override

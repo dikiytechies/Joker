@@ -23,6 +23,7 @@ public class JokerData extends TypeSpecificData {
     private NonStandPowerType<?> previousPowerType;
     private TypeSpecificData oldData;
     private boolean isSociopathyEnabled;
+    private int lastEnergyLevel = Integer.MIN_VALUE;
 //TODO previous data buffs + vampirism data revert fix
     @Override
     public void onPowerGiven(@Nullable NonStandPowerType<?> oldType, @Nullable TypeSpecificData oldData) {
@@ -83,9 +84,13 @@ public class JokerData extends TypeSpecificData {
             }
         }
     }//data get entity Dev ForgeCaps."jojo:non_stand".AdditionalData
-
+    public boolean refreshVampBloodLevel(int bloodLevel) {
+        boolean bloodLevelChanged = this.lastEnergyLevel != bloodLevel;
+        this.lastEnergyLevel = bloodLevel;
+        return bloodLevelChanged;
+    }
     @Override
-    public void syncWithUserOnly(ServerPlayerEntity user) { }
+    public void syncWithUserOnly(ServerPlayerEntity user) { lastEnergyLevel = Integer.MIN_VALUE; }
 
     @Override
     public void syncWithTrackingOrUser(LivingEntity user, ServerPlayerEntity entity) {

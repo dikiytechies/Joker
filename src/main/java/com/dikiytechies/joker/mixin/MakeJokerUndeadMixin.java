@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Arrays;
 
-@Mixin(JojoModUtil.class)
+@Mixin(value = JojoModUtil.class, remap = false)
 public abstract class MakeJokerUndeadMixin {
     @Unique
     private final static NonStandPowerType<?>[] rotP_JI$undeadPowers = { ModPowers.PILLAR_MAN.get(), ModPowers.VAMPIRISM.get(), ModPowers.ZOMBIE.get() };
