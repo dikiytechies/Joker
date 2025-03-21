@@ -11,16 +11,16 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class TrJokerDataPacket {
+public class TrJokerStageDataPacket {
     private final int entityId;
     private final JokerField field;
     private final byte valueInt;
 
-    public static TrJokerDataPacket stage(int entityId, int value) {
-        return new TrJokerDataPacket(entityId, JokerField.STAGE, value);
+    public static TrJokerStageDataPacket stage(int entityId, int value) {
+        return new TrJokerStageDataPacket(entityId, JokerField.STAGE, value);
     }
 
-    private TrJokerDataPacket(int entityId, JokerField flag, int valueInt) {
+    private TrJokerStageDataPacket(int entityId, JokerField flag, int valueInt) {
         this.entityId = entityId;
         this.field = flag;
         this.valueInt = (byte) valueInt;
@@ -28,10 +28,10 @@ public class TrJokerDataPacket {
 
 
 
-    public static class Handler implements IModPacketHandler<TrJokerDataPacket> {
+    public static class Handler implements IModPacketHandler<TrJokerStageDataPacket> {
 
         @Override
-        public void encode(TrJokerDataPacket msg, PacketBuffer buf) {
+        public void encode(TrJokerStageDataPacket msg, PacketBuffer buf) {
             buf.writeInt(msg.entityId);
             buf.writeEnum(msg.field);
             switch (msg.field) {
@@ -42,18 +42,18 @@ public class TrJokerDataPacket {
         }
 
         @Override
-        public TrJokerDataPacket decode(PacketBuffer buf) {
+        public TrJokerStageDataPacket decode(PacketBuffer buf) {
             int entityId = buf.readInt();
             JokerField field = buf.readEnum(JokerField.class);
             switch (field) {
                 case STAGE:
-                    return new TrJokerDataPacket(entityId, field, buf.readInt());
+                    return new TrJokerStageDataPacket(entityId, field, buf.readInt());
             }
             throw new IllegalStateException("Unknown JoJo joker field being sent!");
         }
 
         @Override
-        public void handle(TrJokerDataPacket msg, Supplier<NetworkEvent.Context> ctx) {
+        public void handle(TrJokerStageDataPacket msg, Supplier<NetworkEvent.Context> ctx) {
             Entity entity = ClientUtil.getEntityById(msg.entityId);
             if (entity instanceof LivingEntity) {
                 INonStandPower.getNonStandPowerOptional((LivingEntity) entity).ifPresent(power -> {
@@ -69,8 +69,8 @@ public class TrJokerDataPacket {
         }
 
         @Override
-        public Class<TrJokerDataPacket> getPacketClass() {
-            return TrJokerDataPacket.class;
+        public Class<TrJokerStageDataPacket> getPacketClass() {
+            return TrJokerStageDataPacket.class;
         }
     }
 

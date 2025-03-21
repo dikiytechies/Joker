@@ -3,14 +3,18 @@ package com.dikiytechies.joker.power.impl.nonstand.type;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.github.standobyte.jojo.JojoModConfig;
 import com.github.standobyte.jojo.action.Action;
+import com.github.standobyte.jojo.action.non_stand.PillarmanAction;
 import com.github.standobyte.jojo.client.controls.ControlScheme;
 import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
+import com.github.standobyte.jojo.init.power.non_stand.pillarman.ModPillarmanActions;
 import com.github.standobyte.jojo.init.power.non_stand.vampirism.ModVampirismActions;
 import com.github.standobyte.jojo.init.power.non_stand.zombie.ModZombieActions;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
+import com.github.standobyte.jojo.power.impl.nonstand.type.pillarman.PillarmanData;
 import com.github.standobyte.jojo.power.impl.stand.IStandPower;
 import com.github.standobyte.jojo.util.general.GeneralUtil;
+import com.github.standobyte.jojo.util.mc.MCUtil;
 import com.github.standobyte.jojo.util.mod.JojoModUtil;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -59,7 +63,8 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             if (power.getEnergy() == power.getMaxEnergy() && INonStandPower.getNonStandPowerOptional(power.getUser()).map(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getStage)).get().get() != 3) {
                 INonStandPower.getNonStandPowerOptional(power.getUser()).ifPresent(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(joker -> joker.setStage(joker.getStage() + 1)));
             }
-            if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get() || d.getPreviousPowerType() == ModPowers.ZOMBIE.get()).orElse(false)).orElse(false)) vampirismTick(entity, power);
+            if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get() || d.getPreviousPowerType() == ModPowers.ZOMBIE.get()).orElse(false)).orElse(false)) { vampirismTick(entity, power); }
+            else if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()).orElse(false)).orElse(false)) pillarmanTick(power);
         }
     }
     private void vampirismTick(LivingEntity entity, INonStandPower power) {
@@ -89,6 +94,10 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             bloodLevel = Math.max(bloodLevel - 2, 1);
         }
         return bloodLevel;
+    }
+    //moved to data for the og code's sake
+    public void pillarmanTick(INonStandPower power) {
+        power.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(JokerData::pillarmanTick);
     }
 
     @Override
@@ -189,6 +198,22 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             if (effect == Effects.DIG_SPEED)                                    return bloodLevel - 5;
             if (effect == Effects.JUMP)                                         return bloodLevel - 5;
             if (effect == Effects.NIGHT_VISION)                                 return 0;
+        } else if (jokerData.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {
+            if (jokerData.getPreviousDataNbt().getInt("PillarmanStage") == 1) return -1;
+
+            if (effect == Effects.REGENERATION) {
+                float energyRatio = power.getEnergy() / power.getMaxEnergy();
+                if (energyRatio >= 0.3f) {
+                    return 1;
+                }
+                if (energyRatio >= 0.1f) {
+                    return 0;
+                }
+                return -1;
+            }
+            if (effect == Effects.NIGHT_VISION) {
+                return 0;
+            }
         }
         return -1;
     }
@@ -210,7 +235,36 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
         if (data.getPreviousPowerType() == ModPowers.HAMON.get()) {
 
         } else if (data.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {
-
+            controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_HEAVY_PUNCH.get());
+            controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModPillarmanActions.PILLARMAN_STONE_FORM.get());
+            if (data.getPreviousDataNbt().getInt("PillarmanStage") > 1) {
+                controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_ABSORPTION.get());
+                controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_HORN_ATTACK.get());
+                controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_RIBS_BLADES.get());
+                controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModPillarmanActions.PILLARMAN_REGENERATION.get());
+                controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModPillarmanActions.PILLARMAN_ENHANCED_SENSES.get());
+                controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModPillarmanActions.PILLARMAN_HIDE_IN_ENTITY.get());
+                controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModPillarmanActions.PILLARMAN_EVASION.get());
+            }
+            switch (MCUtil.nbtGetEnum(data.getPreviousDataNbt(), "PillarmanMode", PillarmanData.Mode.class)) {
+                case WIND:
+                    controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_SMALL_SANDSTORM.get());
+                    controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_ATMOSPHERIC_RIFT.get());
+                    controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModPillarmanActions.PILLARMAN_WIND_CLOAK.get());
+                    break;
+                case HEAT:
+                    controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_ERRATIC_BLAZE_KING.get());
+                    controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_GIANT_CARTHWHEEL_PRISON.get());
+                    controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_SELF_DETONATION.get());
+                    break;
+                case LIGHT:
+                    controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModPillarmanActions.PILLARMAN_LIGHT_FLASH.get());
+                    controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_BLADE_DASH_ATTACK.get());
+                    controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_BLADE_BARRAGE.get());
+                    break;
+                default:
+                    break;
+            }
         } else if (data.getPreviousPowerType() == ModPowers.VAMPIRISM.get()) {
             controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModVampirismActions.VAMPIRISM_CLAW_LACERATE.get());
             controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModVampirismActions.VAMPIRISM_BLOOD_DRAIN.get());
@@ -235,7 +289,12 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
         if (data.getPreviousPowerType() == ModPowers.HAMON.get()) {
 
         } else if (data.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {
-
+            if (action instanceof PillarmanAction) {
+                PillarmanAction pmAction = (PillarmanAction) action;
+                JokerData jokerData = power.getTypeSpecificData(this).get();
+                return (pmAction.getPillarManStage() == -1 || pmAction.getPillarManStage() <= jokerData.getPreviousDataNbt().getInt("PillarmanStage"))
+                        && (pmAction.getPillarManMode() == PillarmanData.Mode.NONE || pmAction.getPillarManMode() == MCUtil.nbtGetEnum(jokerData.getPreviousDataNbt(), "PillarmanMode", PillarmanData.Mode.class));
+            }
         } else if (data.getPreviousPowerType() == ModPowers.VAMPIRISM.get()) {
             if (action == ModVampirismActions.VAMPIRISM_CLAW_LACERATE.get() || action == ModVampirismActions.VAMPIRISM_BLOOD_DRAIN.get() ||
             (data.getPreviousDataNbt().getBoolean("VampireFullPower") &&
@@ -268,6 +327,6 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     }
     @Override
     public float getTargetResolveMultiplier(INonStandPower power, IStandPower attackingStand) {
-        return 0;
+        return 0.65f;
     }
 }

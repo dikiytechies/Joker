@@ -12,11 +12,18 @@
     "JokerOverridesZombieMixin",
     "JokerVampirismCureSkipMixin",
     "MakeJokerUndeadMixin",
+    "PillarmanActionMixin",
+    "PillarmanBladeDashAttackMixin",
+    "PillarmanBladesBarrageMixin",
+    "PillarmanBladeSlashMixin",
+    "PillarmanBladesLayerMixin",
+    "PillarmanLayerMixin",
+    "PillarmanLightFlashMixin",
     "PillarmanPowerTypeFixerMixin",
+    "PillarmanStoneFormMixin",
     "VampirismUtilMixin",
     "ZombieDevourMixin"
   ],
   "client": [
-
   ]
 }

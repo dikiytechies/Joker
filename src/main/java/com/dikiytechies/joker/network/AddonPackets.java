@@ -1,7 +1,8 @@
 package com.dikiytechies.joker.network;
 
 import com.dikiytechies.joker.AddonMain;
-import com.dikiytechies.joker.network.packets.fromserver.TrJokerDataPacket;
+import com.dikiytechies.joker.network.packets.fromserver.TrJokerStageDataPacket;
+import com.dikiytechies.joker.network.packets.fromserver.TrJokerPillarmanDataPacket;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerPreviousPowerDataSaverPacket;
 import com.dikiytechies.joker.network.packets.fromserver.TrSociopathyPacket;
 import com.github.standobyte.jojo.network.packets.IModPacketHandler;
@@ -30,9 +31,10 @@ public class AddonPackets {
                 .networkProtocolVersion(() -> PROTOCOL_VERSION)
                 .simpleChannel();
 
-        registerMessage(channel, new TrJokerDataPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        registerMessage(channel, new TrJokerStageDataPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrJokerPreviousPowerDataSaverPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrSociopathyPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        registerMessage(channel, new TrJokerPillarmanDataPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     private static <MSG> void registerMessage(SimpleChannel channel, IModPacketHandler<MSG> handler, Optional<NetworkDirection> networkDirection) {

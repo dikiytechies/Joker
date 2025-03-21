@@ -31,9 +31,11 @@ public abstract class VampirismUtilMixin {
     public static float healCost(World world) {
         return 0;
     }
-//    @author d
-//    @reason s
-    @Overwrite
+/**
+ * @author dikiytechies
+ * @reason predicates are too hard to redirect
+ */
+@Overwrite
     private static void makeMobNeutralToVampirePlayers(MobEntity mob) {
         if (JojoModConfig.getCommonConfigInstance(false).vampiresAggroMobs.get()) return;
         Set<PrioritizedGoal> goals = CommonReflection.getGoalsSet(mob.targetSelector);
