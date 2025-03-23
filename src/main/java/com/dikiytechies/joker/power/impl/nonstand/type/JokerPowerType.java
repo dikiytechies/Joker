@@ -100,6 +100,11 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     }
     //moved to data for the og code's sake
     public void pillarmanTick(INonStandPower power) {
+        if (!power.getUser().level.isClientSide()) {
+            if (power.getUser() instanceof PlayerEntity && power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(j -> j.getPreviousDataNbt().getInt("PillarmanStage") > 1).orElse(false)) {
+                ((PlayerEntity) power.getUser()).getFoodData().setFoodLevel(17);
+            }
+        }
         power.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(JokerData::pillarmanTick);
         int difficulty = power.getUser().level.getDifficulty().getId();
         int bloodLevel = bloodLevel(power, difficulty);
