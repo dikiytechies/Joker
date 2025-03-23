@@ -1,8 +1,6 @@
 package com.dikiytechies.joker.mixin;
 
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
-import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
-import com.dikiytechies.joker.power.impl.nonstand.type.JokerPowerType;
 import com.github.standobyte.jojo.action.ActionConditionResult;
 import com.github.standobyte.jojo.action.ActionTarget;
 import com.github.standobyte.jojo.action.non_stand.ZombieDevour;

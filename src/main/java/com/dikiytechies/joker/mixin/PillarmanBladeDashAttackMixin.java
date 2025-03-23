@@ -1,22 +1,15 @@
 package com.dikiytechies.joker.mixin;
 
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
-import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
 import com.github.standobyte.jojo.action.ActionTarget;
 import com.github.standobyte.jojo.action.non_stand.PillarmanAction;
 import com.github.standobyte.jojo.action.non_stand.PillarmanBladeDashAttack;
-import com.github.standobyte.jojo.action.player.ContinuousActionInstance;
 import com.github.standobyte.jojo.action.player.IPlayerAction;
-import com.github.standobyte.jojo.capability.entity.PlayerUtilCap;
 import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
-import com.github.standobyte.jojo.power.impl.nonstand.type.pillarman.PillarmanData;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -39,13 +32,5 @@ public abstract class PillarmanBladeDashAttackMixin extends PillarmanAction impl
             power.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(j -> j.setPillarmanBladesVisible(false));
             ci.cancel();
         }
-    }
-    @Mixin(PillarmanBladeDashAttack.Instance.class)
-    public static abstract class PBDInstanceMixin extends ContinuousActionInstance<PillarmanBladeDashAttack, INonStandPower> {
-        public PBDInstanceMixin(LivingEntity user, PlayerUtilCap userCap, INonStandPower playerPower, PillarmanBladeDashAttack action) {
-            super(user, userCap, playerPower, action);
-        }
-        //@Overwrite
-        PillarmanData pillarman = playerPower.getTypeSpecificData(ModPowers.PILLAR_MAN.get()).get();
     }
 }

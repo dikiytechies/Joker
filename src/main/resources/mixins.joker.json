@@ -12,6 +12,7 @@
     "JokerOverridesZombieMixin",
     "JokerVampirismCureSkipMixin",
     "MakeJokerUndeadMixin",
+    "PBDInstanceMixin",
     "PillarmanActionMixin",
     "PillarmanBladeDashAttackMixin",
     "PillarmanBladesBarrageMixin",

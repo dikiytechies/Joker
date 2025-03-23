@@ -35,7 +35,10 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     }
 
     @Override
-    public void afterClear(INonStandPower power) {
+    public void onClear(INonStandPower power) {
+        power.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(j -> {
+            if (j.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) j.onClear();
+        });
         super.afterClear(power);
     }
 
@@ -98,6 +101,11 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     //moved to data for the og code's sake
     public void pillarmanTick(INonStandPower power) {
         power.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(JokerData::pillarmanTick);
+        int difficulty = power.getUser().level.getDifficulty().getId();
+        int bloodLevel = bloodLevel(power, difficulty);
+        if (power.getTypeSpecificData(JokerPowerInit.JOKER.get()).get().refreshVampBloodLevel(bloodLevel)) {
+            updatePassiveEffects(power.getUser(), power);
+        }
     }
 
     @Override
@@ -199,6 +207,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             if (effect == Effects.JUMP)                                         return bloodLevel - 5;
             if (effect == Effects.NIGHT_VISION)                                 return 0;
         } else if (jokerData.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {
+            System.out.println("sosal");
             if (jokerData.getPreviousDataNbt().getInt("PillarmanStage") == 1) return -1;
 
             if (effect == Effects.REGENERATION) {

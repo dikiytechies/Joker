@@ -1,9 +1,9 @@
 package com.dikiytechies.joker.network;
 
 import com.dikiytechies.joker.AddonMain;
-import com.dikiytechies.joker.network.packets.fromserver.TrJokerStageDataPacket;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerPillarmanDataPacket;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerPreviousPowerDataSaverPacket;
+import com.dikiytechies.joker.network.packets.fromserver.TrJokerStageDataPacket;
 import com.dikiytechies.joker.network.packets.fromserver.TrSociopathyPacket;
 import com.github.standobyte.jojo.network.packets.IModPacketHandler;
 import net.minecraft.entity.Entity;
