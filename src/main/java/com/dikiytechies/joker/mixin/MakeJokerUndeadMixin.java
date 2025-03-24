@@ -21,7 +21,7 @@ public abstract class MakeJokerUndeadMixin {
     private final static NonStandPowerType<?>[] rotP_JI$undeadPowers = { ModPowers.PILLAR_MAN.get(), ModPowers.VAMPIRISM.get(), ModPowers.ZOMBIE.get() };
     @Inject(method = "isPlayerJojoVampiric(Lnet/minecraft/entity/player/PlayerEntity;)Z", at = @At(value = "HEAD"), cancellable = true, remap = false)
     private static void makeJokerUndead(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
-        if (INonStandPower.getNonStandPowerOptional(player).map(p -> p.getType() == JokerPowerInit.JOKER.get()).get()) {
+        if (INonStandPower.getNonStandPowerOptional(player).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
             JokerData data = INonStandPower.getNonStandPowerOptional(player).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get())).get().get();
             if (Arrays.stream(rotP_JI$undeadPowers).anyMatch(d -> d == data.getPreviousPowerType())) {
                 cir.setReturnValue(true);

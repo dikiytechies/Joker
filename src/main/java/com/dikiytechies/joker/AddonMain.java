@@ -1,5 +1,6 @@
 package com.dikiytechies.joker;
 
+import com.dikiytechies.joker.capability.CapabilityHandler;
 import com.dikiytechies.joker.init.power.AddonCustomRegistries;
 import com.dikiytechies.joker.network.AddonPackets;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -22,12 +23,14 @@ public class AddonMain {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         AddonCustomRegistries.initCustomRegistries(modEventBus);
+        AddonCustomRegistries.initVanillaRegistries(modEventBus);
 
         modEventBus.addListener(this::preInit);
     }
     private void preInit(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             AddonPackets.init();
+            CapabilityHandler.commonSetupRegister();
         });
     }
 }

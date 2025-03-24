@@ -6,11 +6,16 @@ import com.github.standobyte.jojo.action.Action;
 import com.github.standobyte.jojo.action.non_stand.PillarmanAction;
 import com.github.standobyte.jojo.client.controls.ControlScheme;
 import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
+import com.github.standobyte.jojo.init.power.non_stand.hamon.ModHamonActions;
 import com.github.standobyte.jojo.init.power.non_stand.pillarman.ModPillarmanActions;
 import com.github.standobyte.jojo.init.power.non_stand.vampirism.ModVampirismActions;
 import com.github.standobyte.jojo.init.power.non_stand.zombie.ModZombieActions;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
+import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.HamonData;
+import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.skill.AbstractHamonSkill;
+import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.skill.CharacterHamonTechnique;
+import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.skill.CharacterTechniqueHamonSkill;
 import com.github.standobyte.jojo.power.impl.nonstand.type.pillarman.PillarmanData;
 import com.github.standobyte.jojo.power.impl.stand.IStandPower;
 import com.github.standobyte.jojo.util.general.GeneralUtil;
@@ -25,6 +30,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Objects;
 
 public class JokerPowerType extends NonStandPowerType<JokerData> {
@@ -247,7 +253,18 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
         super.clAddMissingActions(controlScheme, power);
         JokerData data = power.getTypeSpecificData(this).get();
         if (data.getPreviousPowerType() == ModPowers.HAMON.get()) {
+            HamonData hamon = (HamonData) power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getPreviousData).get();
+            CharacterHamonTechnique technique = hamon.getCharacterTechnique();
+            Collection<CharacterTechniqueHamonSkill> techniqueSkills = hamon.getTechniqueData().getLearnedSkills();
 
+            if (technique != null) {
+                technique.getPerksOnPick().forEach(techniquePerk -> {
+                    addHamonSkillAction(techniquePerk, controlScheme);
+                });
+            }
+            for (AbstractHamonSkill techniqueSkill : techniqueSkills) {
+                addHamonSkillAction(techniqueSkill, controlScheme);
+            }
         } else if (data.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {
             controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_HEAVY_PUNCH.get());
             controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, ModPillarmanActions.PILLARMAN_STONE_FORM.get());
@@ -295,6 +312,21 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModVampirismActions.VAMPIRISM_CLAW_LACERATE.get());
             controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModZombieActions.ZOMBIE_DEVOUR.get());
         }
+    }
+
+    private static void addHamonSkillAction(AbstractHamonSkill skill, ControlScheme controlScheme) {
+        skill.getRewardActions(true).forEach(action -> {
+            ControlScheme.Hotbar hotbar;
+            switch (skill.getRewardType()) {
+                case ATTACK:
+                    hotbar = ControlScheme.Hotbar.LEFT_CLICK;
+                    break;
+                default:
+                    hotbar = ControlScheme.Hotbar.RIGHT_CLICK;
+                    break;
+            }
+            controlScheme.addIfMissing(hotbar, action);
+        });
     }
 
     @Override

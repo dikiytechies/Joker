@@ -127,7 +127,10 @@ public class JokerData extends TypeSpecificData {
     public NonStandPowerType<?> getPreviousPowerType() { return this.previousPowerType; }
     public void setPreviousData(TypeSpecificData data) { this.oldData = data; }
     public TypeSpecificData getPreviousData() { return this.oldData; }
-    public CompoundNBT getPreviousDataNbt() { return this.oldData.writeNBT(); }
+    public CompoundNBT getPreviousDataNbt() {
+        if (this.oldData != null) return this.oldData.writeNBT();
+        return null;
+    }
     public void setStage(int stage) {
         this.stage = stage;
     }
@@ -184,7 +187,7 @@ public class JokerData extends TypeSpecificData {
     @Override
     public void syncWithUserOnly(ServerPlayerEntity user) {
         lastEnergyLevel = Integer.MIN_VALUE;
-        updatePillarmanBuffs(user);
+        if (previousPowerType == ModPowers.PILLAR_MAN.get()) updatePillarmanBuffs(user);
     }
 
     @Override

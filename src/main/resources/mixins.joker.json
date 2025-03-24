@@ -6,6 +6,7 @@
   "mixins": [
     "ClientEventHandlerMixin",
     "GameplayEventHandlerMixin",
+    "HamonDataMixin",
     "HungryZombieEntityMixin",
     "JokerOverridesHamonMixin",
     "JokerOverridesPillarmanMixin",
