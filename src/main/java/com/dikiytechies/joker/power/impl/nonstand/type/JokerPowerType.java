@@ -6,7 +6,6 @@ import com.github.standobyte.jojo.action.Action;
 import com.github.standobyte.jojo.action.non_stand.PillarmanAction;
 import com.github.standobyte.jojo.client.controls.ControlScheme;
 import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
-import com.github.standobyte.jojo.init.power.non_stand.hamon.ModHamonActions;
 import com.github.standobyte.jojo.init.power.non_stand.pillarman.ModPillarmanActions;
 import com.github.standobyte.jojo.init.power.non_stand.vampirism.ModVampirismActions;
 import com.github.standobyte.jojo.init.power.non_stand.zombie.ModZombieActions;

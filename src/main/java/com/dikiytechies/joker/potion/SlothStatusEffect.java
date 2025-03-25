@@ -4,7 +4,6 @@ import com.dikiytechies.joker.capability.JokerUtilCap;
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
 import com.github.standobyte.jojo.potion.StatusEffect;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
-import com.github.standobyte.jojo.power.impl.nonstand.NonStandPower;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.potion.EffectType;

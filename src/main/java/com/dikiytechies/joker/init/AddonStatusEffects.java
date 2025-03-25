@@ -2,7 +2,6 @@ package com.dikiytechies.joker.init;
 
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.potion.SlothStatusEffect;
-import com.github.standobyte.jojo.potion.StatusEffect;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectType;
 import net.minecraftforge.fml.RegistryObject;

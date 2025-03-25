@@ -46,6 +46,7 @@ public class GameplayEventHandler {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingDamage(LivingDamageEvent event) {
         consumeOrGiveEnergyFromSociopathy(event);
+        delayDamage(event);
         borrowHealth(event);
     }
     private static void consumeOrGiveEnergyFromSociopathy(LivingDamageEvent event) {
@@ -81,7 +82,33 @@ public class GameplayEventHandler {
         LivingEntity entity = event.getEntityLiving();
         if (!entity.level.isClientSide())
             entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
-            if (cap.isSwanSong()) cap.setBorrowedHealth(event.getAmount());
+            if (cap.isSwanSong()) cap.setBorrowedHealth(event.getAmount() + cap.getBorrowedHealth());
+        });
+    }
+    private static void delayDamage(LivingDamageEvent event) {
+        LivingEntity targetEntity = event.getEntityLiving();
+        if (!targetEntity.level.isClientSide()) {
+            LivingEntity entity = (LivingEntity) event.getSource().getEntity();
+            if (entity != null) {
+                if (entity.hasEffect(AddonStatusEffects.SLOTH.get()) && entity.getEffect(AddonStatusEffects.SLOTH.get()).getAmplifier() == 0 && !INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
+                    targetEntity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
+                        cap.addDelayedDamage(event.getAmount());
+                        event.setCanceled(true);
+                    });
+                }
+            }
+        }
+    }
+    private static void tickDelayDamage(LivingEvent.LivingUpdateEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (!entity.level.isClientSide())
+            entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
+            if (cap.getDelayedDamage() > 0.0f && cap.getDamageDelay() == 0) {
+                entity.hurt(DamageSource.MAGIC.bypassMagic().bypassArmor().bypassInvul(), cap.getDelayedDamage());
+                cap.setDelayedDamage(0.0f);
+            } else if (cap.getDamageDelay() != 0) {
+                cap.delayTick();
+            }
         });
     }
     @SubscribeEvent(priority = EventPriority.LOW)
@@ -99,5 +126,9 @@ public class GameplayEventHandler {
                 }
             });
         }
+    }
+    @SubscribeEvent(priority = EventPriority.NORMAL)
+    public static void livingTick(LivingEvent.LivingUpdateEvent event) {
+        tickDelayDamage(event);
     }
 }

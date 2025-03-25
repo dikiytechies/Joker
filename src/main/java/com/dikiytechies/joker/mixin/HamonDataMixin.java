@@ -11,8 +11,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static com.github.standobyte.jojo.power.impl.nonstand.type.hamon.HamonData.levelFromPoints;
 //todo this shit ain't working
 @Mixin(value = HamonData.class, remap = false)
 public abstract class HamonDataMixin extends TypeSpecificData {
