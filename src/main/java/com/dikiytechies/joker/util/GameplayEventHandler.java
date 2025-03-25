@@ -7,6 +7,8 @@ import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
 import com.github.standobyte.jojo.entity.stand.StandEntity;
+import com.github.standobyte.jojo.init.ModStatusEffects;
+import com.github.standobyte.jojo.potion.BleedingEffect;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -58,6 +60,7 @@ public class GameplayEventHandler {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingDamage(LivingDamageEvent event) {
         consumeOrGiveEnergyFromSociopathy(event);
+        wrathDamage(event);
         delayDamage(event);
         borrowHealth(event);
     }
@@ -107,6 +110,27 @@ public class GameplayEventHandler {
                         cap.addDelayedDamage(event.getAmount());
                         event.setCanceled(true);
                     });
+                }
+            }
+        }
+    }
+    private static void wrathDamage(LivingDamageEvent event) {
+        LivingEntity targetEntity = event.getEntityLiving();
+        if (!targetEntity.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity) {
+            LivingEntity damagingEntity = (LivingEntity) event.getSource().getEntity();
+            if (damagingEntity.hasEffect(AddonStatusEffects.WRATH.get()) && damagingEntity != targetEntity) {
+                int maxBleeding = (int) Math.floor(targetEntity.getMaxHealth() / 4.0f) - 1;
+                int currentBleeding = (int) Math.floor(targetEntity.getHealth() / 4.0f);
+                int bleedingAmpl = maxBleeding - currentBleeding - 1;
+                int wrathAmpl = damagingEntity.getEffect(AddonStatusEffects.WRATH.get()).getAmplifier();
+                if (bleedingAmpl > -1) {
+                    targetEntity.addEffect(new EffectInstance(ModStatusEffects.BLEEDING.get(), 150 * (wrathAmpl + 1), bleedingAmpl, false, false, false));
+                }
+                float additionalDamage = damagingEntity.getHealth() * 0.075f * (wrathAmpl + 1);
+                event.setAmount(event.getAmount() + additionalDamage);
+                if (wrathAmpl < 2 && !INonStandPower.getNonStandPowerOptional(damagingEntity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
+                    damagingEntity.hurt(DamageSource.thorns(damagingEntity), additionalDamage / (wrathAmpl + 1));
+                    damagingEntity.hurtMarked = false;
                 }
             }
         }
