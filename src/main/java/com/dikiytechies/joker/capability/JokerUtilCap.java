@@ -40,6 +40,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         this.damageDelay = delayValue;
         if (livingEntity instanceof ServerPlayerEntity) {
             ServerPlayerEntity player = (ServerPlayerEntity) livingEntity;
+            System.out.println(player + " " + livingEntity + " " + livingEntity.getId() + " " + delayedDamage);
             AddonPackets.sendToClient(new TrSlothDebuffPacket(livingEntity.getId(), delayedDamage), player);
         }
     }

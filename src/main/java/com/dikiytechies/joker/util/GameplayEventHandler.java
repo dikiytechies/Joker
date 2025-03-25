@@ -13,6 +13,7 @@ import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.common.capabilities.Capability;
@@ -41,7 +42,7 @@ public class GameplayEventHandler {
                 }
                 if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) {
                     entity.setHealth(0.000001f);
-                    entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setBorrowedHealth(0.00001f));
+                    entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setBorrowedHealth(cap.getBorrowedHealth() + 0.00001f));
                     event.setCanceled(true);
                 }
             }
@@ -66,9 +67,9 @@ public class GameplayEventHandler {
     }
     private static void consumeOrGiveEnergyFromSociopathy(LivingDamageEvent event) {
         LivingEntity entity = event.getEntityLiving();
-        Entity hurtingEntity = event.getSource().getEntity();
         boolean isStand = false;
-        if (hurtingEntity != null) {
+        if (event.getSource().getEntity() != null && event.getSource().getEntity() instanceof LivingEntity) {
+            LivingEntity hurtingEntity = (LivingEntity) event.getSource().getEntity();
             if (hurtingEntity instanceof StandEntity) {
                 hurtingEntity = ((StandEntity) hurtingEntity).getUser();
                 isStand = true;
@@ -82,9 +83,9 @@ public class GameplayEventHandler {
                     }
                 }
                 return;
-            } else if (INonStandPower.getNonStandPowerOptional((LivingEntity) hurtingEntity).isPresent() && hurtingEntity instanceof LivingEntity) {
-                if (INonStandPower.getNonStandPowerOptional((LivingEntity) hurtingEntity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).get()) {
-                    INonStandPower power = INonStandPower.getNonStandPowerOptional((LivingEntity) hurtingEntity).map(p -> p).get();
+            } else if (INonStandPower.getNonStandPowerOptional(hurtingEntity).isPresent()) {
+                if (INonStandPower.getNonStandPowerOptional(hurtingEntity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).get()) {
+                    INonStandPower power = INonStandPower.getNonStandPowerOptional(hurtingEntity).map(p -> p).get();
                     JokerData jokerData = power.getTypeSpecificData(JokerPowerInit.JOKER.get()).get();
                     if (jokerData.isSociopathyEnabled()) {
                         power.addEnergy(event.getAmount() * 2.5f);
@@ -102,22 +103,21 @@ public class GameplayEventHandler {
     }
     private static void delayDamage(LivingDamageEvent event) {
         LivingEntity targetEntity = event.getEntityLiving();
-        if (!targetEntity.level.isClientSide()) {
+        if (!targetEntity.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity) {
             LivingEntity entity = (LivingEntity) event.getSource().getEntity();
-            if (entity != null) {
-                if (entity.hasEffect(AddonStatusEffects.SLOTH.get()) && entity.getEffect(AddonStatusEffects.SLOTH.get()).getAmplifier() == 0 && !INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
+                if (entity != targetEntity && entity.hasEffect(AddonStatusEffects.SLOTH.get()) && entity.getEffect(AddonStatusEffects.SLOTH.get()).getAmplifier() == 0 && !INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
                     targetEntity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
                         cap.addDelayedDamage(event.getAmount());
                         event.setCanceled(true);
                     });
                 }
-            }
         }
     }
     private static void wrathDamage(LivingDamageEvent event) {
         LivingEntity targetEntity = event.getEntityLiving();
         if (!targetEntity.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity) {
             LivingEntity damagingEntity = (LivingEntity) event.getSource().getEntity();
+            damagingEntity = event.getSource().getEntity() instanceof StandEntity? ((StandEntity) event.getSource().getEntity()).getUser(): damagingEntity;
             if (damagingEntity.hasEffect(AddonStatusEffects.WRATH.get()) && damagingEntity != targetEntity) {
                 int maxBleeding = (int) Math.floor(targetEntity.getMaxHealth() / 4.0f) - 1;
                 int currentBleeding = (int) Math.floor(targetEntity.getHealth() / 4.0f);
@@ -129,8 +129,11 @@ public class GameplayEventHandler {
                 float additionalDamage = damagingEntity.getHealth() * 0.075f * (wrathAmpl + 1);
                 event.setAmount(event.getAmount() + additionalDamage);
                 if (wrathAmpl < 2 && !INonStandPower.getNonStandPowerOptional(damagingEntity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
-                    damagingEntity.hurt(DamageSource.thorns(damagingEntity), additionalDamage / (wrathAmpl + 1));
-                    damagingEntity.hurtMarked = false;
+                    if (((damagingEntity instanceof PlayerEntity) && !((PlayerEntity) damagingEntity).isCreative()) || (!(damagingEntity instanceof PlayerEntity) && !damagingEntity.isSpectator())) {
+                        //damagingEntity.hurt(DamageSource.thorns(damagingEntity).bypassArmor().bypassMagic().bypassInvul(), additionalDamage / (wrathAmpl + 1));
+                        damagingEntity.setHealth(damagingEntity.getHealth() - additionalDamage / (wrathAmpl + 1));
+                        damagingEntity.hurtMarked = false;
+                    }
                 }
             }
         }
@@ -154,8 +157,8 @@ public class GameplayEventHandler {
             entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
                 if (cap.isSwanSong()) {
                     cap.setSwanSong(false);
-                    if ((entity instanceof PlayerEntity && !((PlayerEntity) entity).abilities.instabuild) &&
-                    !(entity.isSpectator())) {
+                    if ((entity instanceof PlayerEntity && !((PlayerEntity) entity).abilities.instabuild) || (entity instanceof PlayerEntity &&
+                            !(entity.isSpectator()))) {
                         entity.hurt(DamageSource.WITHER.bypassMagic().bypassArmor().bypassInvul(), cap.getBorrowedHealth());
                     }
                     cap.setBorrowedHealth(0.0f);
