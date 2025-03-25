@@ -16,13 +16,13 @@ public class SlothStatusEffect extends StatusEffect {
     public void applyEffectTick(LivingEntity entity, int amplifier) {
         if (!entity.level.isClientSide() && entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false) && INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() != null).orElse(false)) {
             INonStandPower power = INonStandPower.getNonStandPowerOptional(entity).resolve().get();
-            final float penalty = 6.48f / (amplifier + 1);
+            final float penalty = 3f / (amplifier + 0.5f);
             if (power.getEnergy() <= penalty) {
                 entity.removeEffect(this);
                 entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
                     if (!(entity instanceof PlayerEntity) || (entity instanceof PlayerEntity && !((PlayerEntity)entity).abilities.instabuild) && !(entity.isSpectator())) {
                         cap.setSwanSong(false);
-                        entity.hurt(DamageSource.MAGIC.bypassMagic().bypassArmor().bypassInvul(), cap.getBorrowedHealth());
+                        entity.hurt(DamageSource.WITHER.bypassMagic().bypassArmor().bypassInvul(), cap.getBorrowedHealth());
                     }
                     cap.setBorrowedHealth(0.0f);
                 });

@@ -13,6 +13,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.DamageSource;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -31,17 +32,28 @@ public class GameplayEventHandler {
                 EffectInstance sloth = entity.getActiveEffectsMap().get(AddonStatusEffects.SLOTH.get());
                 if (INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
                     if (!entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
-                } else if (sloth.getDuration() > 60) {
+                } else if (sloth.getDuration() > 90) {
                     entity.removeEffect(sloth.getEffect());
-                    entity.addEffect(new EffectInstance(AddonStatusEffects.SLOTH.get(), 60, sloth.getAmplifier(), sloth.isAmbient(), sloth.isVisible(), sloth.showIcon()));
+                    entity.addEffect(new EffectInstance(AddonStatusEffects.SLOTH.get(), 90, sloth.getAmplifier(), sloth.isAmbient(), sloth.isVisible(), sloth.showIcon()));
                     entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
                 }
                 if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) {
                     entity.setHealth(0.000001f);
+                    entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setBorrowedHealth(0.00001f));
                     event.setCanceled(true);
                 }
             }
         //}
+        if (!entity.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity) {
+            LivingEntity killer = (LivingEntity) event.getSource().getEntity();
+            if (killer.hasEffect(AddonStatusEffects.SLOTH.get())) {
+                if (entity instanceof PlayerEntity) {
+                    killer.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setBorrowedHealth(0.0f));
+                } else {
+                    killer.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setBorrowedHealth(cap.getBorrowedHealth() / 3.0f));
+                }
+            }
+        }
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingDamage(LivingDamageEvent event) {
@@ -80,7 +92,7 @@ public class GameplayEventHandler {
     }
     private static void borrowHealth(LivingDamageEvent event) {
         LivingEntity entity = event.getEntityLiving();
-        if (!entity.level.isClientSide())
+        if (!entity.level.isClientSide() && event.getAmount() >= entity.getHealth())
             entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
             if (cap.isSwanSong()) cap.setBorrowedHealth(event.getAmount() + cap.getBorrowedHealth());
         });
@@ -104,7 +116,7 @@ public class GameplayEventHandler {
         if (!entity.level.isClientSide())
             entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
             if (cap.getDelayedDamage() > 0.0f && cap.getDamageDelay() == 0) {
-                entity.hurt(DamageSource.MAGIC.bypassMagic().bypassArmor().bypassInvul(), cap.getDelayedDamage());
+                entity.hurt(DamageSource.WITHER.bypassMagic().bypassArmor().bypassInvul(), cap.getDelayedDamage());
                 cap.setDelayedDamage(0.0f);
             } else if (cap.getDamageDelay() != 0) {
                 cap.delayTick();
@@ -120,7 +132,7 @@ public class GameplayEventHandler {
                     cap.setSwanSong(false);
                     if ((entity instanceof PlayerEntity && !((PlayerEntity) entity).abilities.instabuild) &&
                     !(entity.isSpectator())) {
-                        entity.hurt(DamageSource.MAGIC.bypassMagic().bypassArmor().bypassInvul(), cap.getBorrowedHealth());
+                        entity.hurt(DamageSource.WITHER.bypassMagic().bypassArmor().bypassInvul(), cap.getBorrowedHealth());
                     }
                     cap.setBorrowedHealth(0.0f);
                 }
