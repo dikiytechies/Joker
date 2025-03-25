@@ -1,6 +1,7 @@
 package com.dikiytechies.joker.init;
 
 import com.dikiytechies.joker.AddonMain;
+import com.dikiytechies.joker.potion.GluttonyStatusEffect;
 import com.dikiytechies.joker.potion.LustStatusEffect;
 import com.dikiytechies.joker.potion.SlothStatusEffect;
 import com.github.standobyte.jojo.potion.StatusEffect;
@@ -19,4 +20,6 @@ public class AddonStatusEffects {
             () -> new StatusEffect(EffectType.NEUTRAL, 0xcb5136).setUncurable());
     public static final RegistryObject<Effect> LUST = EFFECTS.register("lust",
             () -> new LustStatusEffect(EffectType.NEUTRAL, 0xdd45ba).setUncurable());
+    public static final RegistryObject<Effect> GLUTTONY = EFFECTS.register("gluttony",
+            () -> new GluttonyStatusEffect(EffectType.NEUTRAL, 0xcf8638).setUncurable());
 }

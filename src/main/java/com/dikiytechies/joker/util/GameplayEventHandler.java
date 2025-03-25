@@ -23,10 +23,7 @@ import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.PotionEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -72,6 +69,7 @@ public class GameplayEventHandler {
         wrathDamage(event);
         delayDamage(event);
         borrowHealth(event);
+        consumeGluttonyEnergy(event);
     }
     private static void consumeOrGiveEnergyFromSociopathy(LivingDamageEvent event) {
         LivingEntity entity = event.getEntityLiving();
@@ -187,6 +185,25 @@ public class GameplayEventHandler {
                     if ((entity.hasEffect(Effects.POISON) && entity.getEffect(Effects.POISON).getDuration() < 25) || !entity.hasEffect(Effects.POISON))
                         entity.addEffect(new EffectInstance(Effects.POISON, 50, 0, false, false, false));
                 }
+            }
+        }
+    }
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void cancelGluttonyHeal(LivingHealEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (!entity.level.isClientSide()) {
+            if (entity.hasEffect(AddonStatusEffects.GLUTTONY.get()) && entity.getEffect(AddonStatusEffects.GLUTTONY.get()).getAmplifier() < 1 && INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() != JokerPowerInit.JOKER.get()).orElse(false)) {
+                if (entity instanceof PlayerEntity)
+                    ((PlayerEntity) entity).getFoodData().setFoodLevel(Math.min(20, ((PlayerEntity) entity).getFoodData().getFoodLevel() + (int) Math.floor(event.getAmount() / 2)));
+                event.setCanceled(true);
+            }
+        }
+    }
+    private static void consumeGluttonyEnergy(LivingDamageEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (!entity.level.isClientSide()) {
+            if (entity.hasEffect(AddonStatusEffects.GLUTTONY.get()) && entity.getEffect(AddonStatusEffects.GLUTTONY.get()).getAmplifier() < 1 && INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() != JokerPowerInit.JOKER.get()).orElse(false)) {
+                INonStandPower.getNonStandPowerOptional(entity).ifPresent(p -> p.consumeEnergy(Math.min(event.getAmount() * 20, p.getEnergy())));
             }
         }
     }
