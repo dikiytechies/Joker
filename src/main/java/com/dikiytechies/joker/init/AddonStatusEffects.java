@@ -1,6 +1,7 @@
 package com.dikiytechies.joker.init;
 
 import com.dikiytechies.joker.AddonMain;
+import com.dikiytechies.joker.potion.LustStatusEffect;
 import com.dikiytechies.joker.potion.SlothStatusEffect;
 import com.github.standobyte.jojo.potion.StatusEffect;
 import net.minecraft.potion.Effect;
@@ -16,4 +17,6 @@ public class AddonStatusEffects {
             () -> new SlothStatusEffect(EffectType.NEUTRAL, 0x7cbd8b).setUncurable());
     public static final RegistryObject<Effect> WRATH = EFFECTS.register("wrath",
             () -> new StatusEffect(EffectType.NEUTRAL, 0xcb5136).setUncurable());
+    public static final RegistryObject<Effect> LUST = EFFECTS.register("lust",
+            () -> new LustStatusEffect(EffectType.NEUTRAL, 0xdd45ba).setUncurable());
 }

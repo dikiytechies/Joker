@@ -6,15 +6,21 @@ import com.dikiytechies.joker.capability.JokerUtilCapProvider;
 import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
+import com.github.standobyte.jojo.capability.entity.PlayerUtilCapProvider;
 import com.github.standobyte.jojo.entity.stand.StandEntity;
 import com.github.standobyte.jojo.init.ModStatusEffects;
 import com.github.standobyte.jojo.potion.BleedingEffect;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
+import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
@@ -24,6 +30,8 @@ import net.minecraftforge.event.entity.living.PotionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = AddonMain.MOD_ID)
 public class GameplayEventHandler {
@@ -168,6 +176,18 @@ public class GameplayEventHandler {
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void livingTick(LivingEvent.LivingUpdateEvent event) {
+        lustTick(event);
         tickDelayDamage(event);
+    }
+    private static void lustTick(LivingEvent.LivingUpdateEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (!entity.level.isClientSide()) {
+            if (entity.hasEffect(AddonStatusEffects.LUST.get()) && entity.getEffect(AddonStatusEffects.LUST.get()).getAmplifier() < 1 && INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() != JokerPowerInit.JOKER.get()).orElse(false)) {
+                if (entity.getCapability(PlayerUtilCapProvider.CAPABILITY).map(cap -> cap.getNoClientInputTimer() > 100).orElse(false) && entity.getHealth() / entity.getMaxHealth() >= 0.35f) {
+                    if ((entity.hasEffect(Effects.POISON) && entity.getEffect(Effects.POISON).getDuration() < 25) || !entity.hasEffect(Effects.POISON))
+                        entity.addEffect(new EffectInstance(Effects.POISON, 50, 0, false, false, false));
+                }
+            }
+        }
     }
 }
