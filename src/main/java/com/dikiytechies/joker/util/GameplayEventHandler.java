@@ -150,7 +150,7 @@ public class GameplayEventHandler {
                 }
                 int bleedingAmpl = (int) Math.floor((BleedingEffect.getMaxHealthWithoutBleeding(targetEntity) - targetEntity.getHealth() + event.getAmount()) / 4) - 1;
                 if (bleedingAmpl > -1) {
-                    targetEntity.addEffect(new EffectInstance(ModStatusEffects.BLEEDING.get(), 150 * (wrathAmpl + 1), bleedingAmpl, false, false, false));
+                    targetEntity.addEffect(new EffectInstance(ModStatusEffects.BLEEDING.get(), 75 * (wrathAmpl + 1), bleedingAmpl, false, false, false));
                 }
             }
         }
