@@ -138,13 +138,7 @@ public class GameplayEventHandler {
             LivingEntity damagingEntity = (LivingEntity) event.getSource().getEntity();
             damagingEntity = event.getSource().getEntity() instanceof StandEntity? ((StandEntity) event.getSource().getEntity()).getUser(): damagingEntity;
             if (damagingEntity.hasEffect(AddonStatusEffects.WRATH.get()) && damagingEntity != targetEntity) {
-                int maxBleeding = (int) Math.floor(targetEntity.getMaxHealth() / 4.0f) - 1;
-                int currentBleeding = (int) Math.floor(targetEntity.getHealth() / 4.0f);
-                int bleedingAmpl = maxBleeding - currentBleeding - 1;
                 int wrathAmpl = damagingEntity.getEffect(AddonStatusEffects.WRATH.get()).getAmplifier();
-                if (bleedingAmpl > -1) {
-                    targetEntity.addEffect(new EffectInstance(ModStatusEffects.BLEEDING.get(), 150 * (wrathAmpl + 1), bleedingAmpl, false, false, false));
-                }
                 float additionalDamage = damagingEntity.getHealth() * 0.075f * (wrathAmpl + 1);
                 event.setAmount(event.getAmount() + additionalDamage);
                 if (wrathAmpl < 2 && !INonStandPower.getNonStandPowerOptional(damagingEntity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
@@ -153,6 +147,10 @@ public class GameplayEventHandler {
                         damagingEntity.setHealth(damagingEntity.getHealth() - additionalDamage / (wrathAmpl + 1));
                         damagingEntity.hurtMarked = false;
                     }
+                }
+                int bleedingAmpl = (int) Math.floor((BleedingEffect.getMaxHealthWithoutBleeding(targetEntity) - targetEntity.getHealth() + event.getAmount()) / 4) - 1;
+                if (bleedingAmpl > -1) {
+                    targetEntity.addEffect(new EffectInstance(ModStatusEffects.BLEEDING.get(), 150 * (wrathAmpl + 1), bleedingAmpl, false, false, false));
                 }
             }
         }
