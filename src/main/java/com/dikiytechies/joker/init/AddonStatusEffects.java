@@ -22,4 +22,6 @@ public class AddonStatusEffects {
             () -> new LustStatusEffect(EffectType.NEUTRAL, 0xdd45ba).setUncurable());
     public static final RegistryObject<Effect> GLUTTONY = EFFECTS.register("gluttony",
             () -> new GluttonyStatusEffect(EffectType.NEUTRAL, 0xcf8638).setUncurable());
+    public static final RegistryObject<Effect> ENVY = EFFECTS.register("envy",
+            () -> new StatusEffect(EffectType.NEUTRAL, 0x5d825a).setUncurable());
 }

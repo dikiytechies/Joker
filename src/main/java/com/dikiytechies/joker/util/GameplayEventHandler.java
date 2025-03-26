@@ -22,35 +22,41 @@ import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.Hand;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = AddonMain.MOD_ID)
 public class GameplayEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingDeath(LivingDeathEvent event) {
+        slothDeath(event);
+        eraseEnvyDataOnDeath(event);
+    }
+    private static void slothDeath(LivingDeathEvent event) {
         LivingEntity entity = event.getEntityLiving();
-        //if (!entity.level.isClientSide()) {
-            if (entity.hasEffect(AddonStatusEffects.SLOTH.get())) {
-                EffectInstance sloth = entity.getActiveEffectsMap().get(AddonStatusEffects.SLOTH.get());
-                if (INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
-                    if (!entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
-                } else if (sloth.getDuration() > 90) {
-                    entity.removeEffect(sloth.getEffect());
-                    entity.addEffect(new EffectInstance(AddonStatusEffects.SLOTH.get(), 90, sloth.getAmplifier(), sloth.isAmbient(), sloth.isVisible(), sloth.showIcon()));
-                    entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
-                }
-                if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) {
-                    entity.setHealth(0.000001f);
-                    entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setBorrowedHealth(cap.getBorrowedHealth() + 0.00001f));
-                    event.setCanceled(true);
-                }
+        if (entity.hasEffect(AddonStatusEffects.SLOTH.get())) {
+            EffectInstance sloth = entity.getActiveEffectsMap().get(AddonStatusEffects.SLOTH.get());
+            if (INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
+                if (!entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
+            } else if (sloth.getDuration() > 90) {
+                entity.removeEffect(sloth.getEffect());
+                entity.addEffect(new EffectInstance(AddonStatusEffects.SLOTH.get(), 90, sloth.getAmplifier(), sloth.isAmbient(), sloth.isVisible(), sloth.showIcon()));
+                entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
             }
+            if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) {
+                entity.setHealth(0.000001f);
+                entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setBorrowedHealth(cap.getBorrowedHealth() + 0.00001f));
+                event.setCanceled(true);
+            }
+        }
         //}
         if (!entity.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity) {
             LivingEntity killer = (LivingEntity) event.getSource().getEntity();
@@ -63,8 +69,15 @@ public class GameplayEventHandler {
             }
         }
     }
+    private static void eraseEnvyDataOnDeath(LivingDeathEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (!entity.level.isClientSide() && !event.isCanceled()) {
+            entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setStolenAttributesAmount(0.0, 0, true));
+        }
+    }
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingDamage(LivingDamageEvent event) {
+        stealAttributesLivingEnvy(event);
         consumeOrGiveEnergyFromSociopathy(event);
         wrathDamage(event);
         delayDamage(event);
@@ -163,8 +176,7 @@ public class GameplayEventHandler {
             entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
                 if (cap.isSwanSong()) {
                     cap.setSwanSong(false);
-                    if ((entity instanceof PlayerEntity && !((PlayerEntity) entity).abilities.instabuild) || (entity instanceof PlayerEntity &&
-                            !(entity.isSpectator()))) {
+                    if (!(entity instanceof PlayerEntity) || !((PlayerEntity) entity).abilities.instabuild && !entity.isSpectator()) {
                         entity.hurt(DamageSource.WITHER.bypassMagic().bypassArmor().bypassInvul(), cap.getBorrowedHealth());
                     }
                     cap.setBorrowedHealth(0.0f);
@@ -174,6 +186,7 @@ public class GameplayEventHandler {
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void livingTick(LivingEvent.LivingUpdateEvent event) {
+        envyTick(event);
         lustTick(event);
         tickDelayDamage(event);
     }
@@ -187,6 +200,10 @@ public class GameplayEventHandler {
                 }
             }
         }
+    }
+    private static void envyTick(LivingEvent.LivingUpdateEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (!entity.level.isClientSide()) entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(JokerUtilCap::envyTick);
     }
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void cancelGluttonyHeal(LivingHealEvent event) {
@@ -204,6 +221,46 @@ public class GameplayEventHandler {
         if (!entity.level.isClientSide()) {
             if (entity.hasEffect(AddonStatusEffects.GLUTTONY.get()) && entity.getEffect(AddonStatusEffects.GLUTTONY.get()).getAmplifier() < 1 && INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() != JokerPowerInit.JOKER.get()).orElse(false)) {
                 INonStandPower.getNonStandPowerOptional(entity).ifPresent(p -> p.consumeEnergy(Math.min(event.getAmount() * 20, p.getEnergy())));
+            }
+        }
+    }
+    @SubscribeEvent(priority = EventPriority.NORMAL)
+    public static void onPlayerAttack(AttackEntityEvent event) {
+        stealAttributesPlayerEnvy(event);
+    }
+    private static void stealAttributesPlayerEnvy(AttackEntityEvent event) {
+        PlayerEntity player = event.getPlayer();
+        if (!player.level.isClientSide()) {
+            if (event.getTarget() instanceof LivingEntity) {
+                LivingEntity target = (LivingEntity) event.getTarget();
+                if (player.hasEffect(AddonStatusEffects.ENVY.get()) &&
+                        (!(target instanceof PlayerEntity) || !((PlayerEntity) target).abilities.instabuild) && !target.isSpectator()) {
+                    int amplifier = player.getEffect(AddonStatusEffects.ENVY.get()).getAmplifier();
+                    if (player.getAttackStrengthScale(0f) == 1 && target.hurt(DamageSource.playerAttack(player), 0)) {
+                        target.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(c -> player.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
+                            cap.addStolenAmount(0.10 * (amplifier + 1), (int) Math.ceil(300 * Math.sqrt(amplifier + 1)));
+                            c.addStolenAmount(-0.10 * (amplifier + 1), (int) Math.ceil(300 * Math.sqrt(amplifier + 1)));
+                        }));
+                    } else if (player.getEffect(AddonStatusEffects.ENVY.get()).getAmplifier() < 1 && INonStandPower.getNonStandPowerOptional(player).map(p -> p.getType() != JokerPowerInit.JOKER.get()).orElse(false)) player.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
+                        cap.addStolenAmount(-0.10 * (amplifier + 1), 300);
+                    });
+                }
+            }
+        }
+    }
+    private static void stealAttributesLivingEnvy(LivingDamageEvent event) {
+        LivingEntity target = event.getEntityLiving();
+        if (!(event.getSource().getEntity() instanceof PlayerEntity)) {
+            if (event.getSource().getEntity() instanceof LivingEntity) {
+                LivingEntity entity = (LivingEntity) event.getSource().getEntity();
+                if (entity.hasEffect(AddonStatusEffects.ENVY.get()) &&
+                        (!(target instanceof PlayerEntity) || !((PlayerEntity) target).abilities.instabuild) && !target.isSpectator()) {
+                    int amplifier = entity.getEffect(AddonStatusEffects.ENVY.get()).getAmplifier();
+                        target.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(c -> entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
+                            cap.addStolenAmount(0.10 * (amplifier + 1), (int) Math.ceil(300 * Math.sqrt(amplifier + 1)));
+                            c.addStolenAmount(-0.10 * (amplifier + 1), (int) Math.ceil(300 * Math.sqrt(amplifier + 1)));
+                        }));
+                }
             }
         }
     }

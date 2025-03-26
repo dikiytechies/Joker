@@ -33,6 +33,7 @@ public class AddonPackets {
         registerMessage(channel, new TrSociopathyPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrJokerPillarmanDataPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrSlothEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        registerMessage(channel, new TrEnvyStealPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     private static <MSG> void registerMessage(SimpleChannel channel, IModPacketHandler<MSG> handler, Optional<NetworkDirection> networkDirection) {
