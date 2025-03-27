@@ -5,33 +5,32 @@ import com.dikiytechies.joker.capability.JokerUtilCap;
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
 import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
+import com.dikiytechies.joker.potion.GreedStatusEffect;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
 import com.github.standobyte.jojo.capability.entity.PlayerUtilCapProvider;
 import com.github.standobyte.jojo.entity.stand.StandEntity;
 import com.github.standobyte.jojo.init.ModStatusEffects;
 import com.github.standobyte.jojo.potion.BleedingEffect;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
-import net.minecraft.entity.Entity;
+import com.github.standobyte.jojo.util.general.MathUtil;
+import com.github.standobyte.jojo.util.mc.MCUtil;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.potion.Effect;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.Hand;
-import net.minecraftforge.common.capabilities.Capability;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Mod.EventBusSubscriber(modid = AddonMain.MOD_ID)
 public class GameplayEventHandler {
@@ -82,6 +81,7 @@ public class GameplayEventHandler {
         wrathDamage(event);
         delayDamage(event);
         borrowHealth(event);
+        consumeGreedHealth(event);
         consumeGluttonyEnergy(event);
     }
     private static void consumeOrGiveEnergyFromSociopathy(LivingDamageEvent event) {
@@ -115,7 +115,7 @@ public class GameplayEventHandler {
     }
     private static void borrowHealth(LivingDamageEvent event) {
         LivingEntity entity = event.getEntityLiving();
-        if (!entity.level.isClientSide() && event.getAmount() >= entity.getHealth())
+        if (!entity.level.isClientSide() && event.getAmount() >= entity.getHealth() && !event.isCanceled())
             entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
             if (cap.isSwanSong()) cap.setBorrowedHealth(event.getAmount() + cap.getBorrowedHealth());
         });
@@ -169,7 +169,11 @@ public class GameplayEventHandler {
     }
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onEffectExpiry(PotionEvent.PotionExpiryEvent event) {
-        if (event.getPotionEffect().getEffect() == AddonStatusEffects.SLOTH.get() && !event.getEntityLiving().level.isClientSide()) {
+        slothExpiry(event);
+        greedExpiry(event);
+    }
+    private static void slothExpiry(PotionEvent.PotionExpiryEvent event) {
+        if (event.getPotionEffect().getEffect().getEffect() == AddonStatusEffects.SLOTH.get() && !event.getEntityLiving().level.isClientSide()) {
             LivingEntity entity = event.getEntityLiving();
             entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
                 if (cap.isSwanSong()) {
@@ -180,6 +184,26 @@ public class GameplayEventHandler {
                     cap.setBorrowedHealth(0.0f);
                 }
             });
+        }
+    }
+    private static void greedExpiry(PotionEvent.PotionExpiryEvent event) {
+        if (event.getPotionEffect().getEffect() == AddonStatusEffects.SLOTH.get() && !event.getEntityLiving().level.isClientSide()) {
+            LivingEntity entity = event.getEntityLiving();
+            MCUtil.removeAttributeModifier(entity, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", 0.0, AttributeModifier.Operation.ADDITION));
+            MCUtil.removeAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", 0.0, AttributeModifier.Operation.ADDITION));
+            entity.setHealth(entity.getMaxHealth());
+        }
+    }
+    @SubscribeEvent(priority = EventPriority.NORMAL)
+    public static void onEffectClear(PotionEvent.PotionRemoveEvent event) {
+        greedClear(event);
+    }
+    private static void greedClear(PotionEvent.PotionRemoveEvent event) {
+        if (event.getPotion().equals(AddonStatusEffects.GREED.get()) && !event.getEntityLiving().level.isClientSide()) {
+            LivingEntity entity = event.getEntityLiving();
+            MCUtil.removeAttributeModifier(entity, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", 0.0, AttributeModifier.Operation.ADDITION));
+            MCUtil.removeAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", 0.0, AttributeModifier.Operation.ADDITION));
+            entity.setHealth(entity.getMaxHealth());
         }
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
@@ -204,7 +228,11 @@ public class GameplayEventHandler {
         if (!entity.level.isClientSide()) entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(JokerUtilCap::envyTick);
     }
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void cancelGluttonyHeal(LivingHealEvent event) {
+    public static void onHeal(LivingHealEvent event) {
+        consumeGreedArmor(event);
+        cancelGluttonyHeal(event);
+    }
+    private static void cancelGluttonyHeal(LivingHealEvent event) {
         LivingEntity entity = event.getEntityLiving();
         if (!entity.level.isClientSide()) {
             if (entity.hasEffect(AddonStatusEffects.GLUTTONY.get()) && entity.getEffect(AddonStatusEffects.GLUTTONY.get()).getAmplifier() < 1 && INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() != JokerPowerInit.JOKER.get()).orElse(false)) {
@@ -216,9 +244,53 @@ public class GameplayEventHandler {
     }
     private static void consumeGluttonyEnergy(LivingDamageEvent event) {
         LivingEntity entity = event.getEntityLiving();
-        if (!entity.level.isClientSide()) {
+        if (!entity.level.isClientSide() && !event.isCanceled()) {
             if (entity.hasEffect(AddonStatusEffects.GLUTTONY.get()) && entity.getEffect(AddonStatusEffects.GLUTTONY.get()).getAmplifier() < 1 && INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() != JokerPowerInit.JOKER.get()).orElse(false)) {
                 INonStandPower.getNonStandPowerOptional(entity).ifPresent(p -> p.consumeEnergy(Math.min(event.getAmount() * 20, p.getEnergy())));
+            }
+        }
+    }
+    private static void consumeGreedArmor(LivingHealEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (!entity.level.isClientSide() && !event.isCanceled()) {
+            float healAmount = event.getAmount();
+            if (entity.hasEffect(AddonStatusEffects.GREED.get())) {
+                if (healAmount + entity.getHealth() >= entity.getMaxHealth()) {
+                    double armorKeeper = entity.getEffect(AddonStatusEffects.GREED.get()).getAmplifier() > 0 || INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)?
+                            GreedStatusEffect.getMaxArmorWithoutGreed(entity): entity.getArmorValue() + (entity.getMaxHealth() - GreedStatusEffect.getMaxHealthWithoutGreed(entity));
+                    double additionalHealth = entity.getMaxHealth() - GreedStatusEffect.getMaxHealthWithoutGreed(entity) +
+                            Math.min(GreedStatusEffect.getMaxArmorWithoutGreed(entity) - (entity.getMaxHealth() - GreedStatusEffect.getMaxHealthWithoutGreed(entity)), event.getAmount());
+                    MCUtil.applyAttributeModifier(entity, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", additionalHealth, AttributeModifier.Operation.ADDITION));
+                    if (!(entity.getEffect(AddonStatusEffects.GREED.get()).getAmplifier() > 0 || INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false))) {
+                        MCUtil.applyAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", -additionalHealth, AttributeModifier.Operation.ADDITION));
+                    } else MCUtil.applyAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", armorKeeper - additionalHealth, AttributeModifier.Operation.ADDITION));
+                }
+            }
+        }
+    }
+    private static void consumeGreedHealth(LivingDamageEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (!entity.level.isClientSide() && !event.isCanceled()) {
+            float damage = event.getAmount();
+            if (entity.hasEffect(AddonStatusEffects.GREED.get())) {
+                MCUtil.applyAttributeModifier(entity, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", entity.getMaxHealth() - GreedStatusEffect.getMaxHealthWithoutGreed(entity) - damage, AttributeModifier.Operation.ADDITION));
+                MCUtil.applyAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", entity.getArmorValue() + damage, AttributeModifier.Operation.ADDITION));
+            }
+        }
+    }
+    @SubscribeEvent(priority = EventPriority.NORMAL)
+    public static void onEquipmentChanged(LivingEquipmentChangeEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (!entity.level.isClientSide() && entity.hasEffect(AddonStatusEffects.GREED.get())) {
+            if (Arrays.stream(EquipmentSlotType.values()).anyMatch(equipmentSlotType -> equipmentSlotType.getType() == event.getSlot().getType())) {
+                AtomicReference<Double> armorCounter = new AtomicReference<>(0.0);
+                event.getFrom().getAttributeModifiers(event.getSlot()).get(Attributes.ARMOR).forEach(armor -> armorCounter.updateAndGet(v -> v + armor.getAmount()));
+                double additionalHealth = Math.min(entity.getHealth() - GreedStatusEffect.getMaxHealthWithoutGreed(entity), GreedStatusEffect.getMaxArmorWithoutGreed(entity) - armorCounter.get());
+                MCUtil.applyAttributeModifier(entity, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", additionalHealth, AttributeModifier.Operation.ADDITION));
+                if (!(entity.getEffect(AddonStatusEffects.GREED.get()).getAmplifier() > 0 || INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false))) {
+                    MCUtil.applyAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", -additionalHealth, AttributeModifier.Operation.ADDITION));
+                } else MCUtil.applyAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", GreedStatusEffect.getMaxArmorWithoutGreed(entity) - additionalHealth, AttributeModifier.Operation.ADDITION));
+                entity.setHealth(entity.getMaxHealth());
             }
         }
     }

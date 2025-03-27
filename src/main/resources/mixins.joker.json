@@ -5,6 +5,7 @@
   "minVersion": "0.8",
   "mixins": [
     "ClientEventHandlerMixin",
+    "EffectMixin",
     "GameplayEventHandlerMixin",
     "HamonDataMixin",
     "HungryZombieEntityMixin",
@@ -24,6 +25,7 @@
     "PillarmanLightFlashMixin",
     "PillarmanPowerTypeFixerMixin",
     "PillarmanStoneFormMixin",
+    "PlayerEntityMixin",
     "VampirismUtilMixin",
     "ZombieDevourMixin"
   ],
