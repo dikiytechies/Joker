@@ -23,7 +23,6 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundCategory;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -102,7 +101,7 @@ public class GameplayEventHandler {
                 if (INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).get() && (hurtingEntity != entity && !isStand)) {
                     INonStandPower power = INonStandPower.getNonStandPowerOptional(entity).map(p -> p).get();
                     JokerData jokerData = power.getTypeSpecificData(JokerPowerInit.JOKER.get()).get();
-                    if (jokerData.isSociopathyEnabled()) {
+                    if (jokerData.isSociopathyEnabled() && !entity.hasEffect(AddonStatusEffects.GREED.get())) {
                         power.consumeEnergy(Math.min((event.getAmount() * 5), power.getEnergy()));
                     }
                 }

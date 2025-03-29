@@ -2,6 +2,8 @@ package com.dikiytechies.joker.init.power.non_stand.joker;
 
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.action.non_stand.JokerAction;
+import com.dikiytechies.joker.action.non_stand.JokerEffectSelect;
+import com.dikiytechies.joker.action.non_stand.JokerQuickEffect;
 import com.dikiytechies.joker.action.non_stand.JokerSociopathy;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerPowerType;
 import com.github.standobyte.jojo.action.Action;
@@ -19,8 +21,12 @@ public class JokerPowerInit {
     public static final DeferredRegister<Action<?>> ACTIONS = DeferredRegister.create(
             (Class<Action<?>>) ((Class<?>) Action.class), AddonMain.MOD_ID);
 
-    public static final RegistryObject<JokerAction> SOCIOPATHY = ACTIONS.register("sociopathy", () ->
-            new JokerSociopathy(new JokerAction.Builder()));
+    public static final RegistryObject<JokerAction> SOCIOPATHY = ACTIONS.register("sociopathy",
+            () -> new JokerSociopathy(new JokerAction.Builder()));
+    public static final RegistryObject<JokerAction> EFFECT_SELECT = ACTIONS.register("effect_select",
+            () -> new JokerEffectSelect(new JokerAction.Builder()));
+    public static final RegistryObject<JokerAction> EFFECT_QUICK_SELECT = ACTIONS.register("effect_quick_select",
+            () -> new JokerQuickEffect(new JokerAction.Builder().shiftVariationOf(EFFECT_SELECT)));
 
 
     public static final RegistryObject<JokerPowerType> JOKER = NON_STAND_POWER.register("joker", () -> new JokerPowerType(

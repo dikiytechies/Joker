@@ -1,16 +1,20 @@
 package com.dikiytechies.joker.capability;
 
+import com.dikiytechies.joker.client.ui.screen.EffectSelectionScreen;
+import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.*;
 import com.dikiytechies.joker.potion.PrideStatusEffect;
-import com.github.standobyte.jojo.client.ClientUtil;
+import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
+import com.dikiytechies.joker.power.impl.nonstand.type.JokerPowerType;
+import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
+import com.github.standobyte.jojo.power.impl.nonstand.NonStandPower;
 import com.github.standobyte.jojo.util.mc.MCUtil;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
 import net.minecraftforge.common.util.INBTSerializable;
 
@@ -35,6 +39,8 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     private PrideStatusEffect.MultiCastType multiCastType;
     private int multiCastTicksLeft;
     private LivingEntity multiCastTarget;
+    private EffectSelectionScreen.EffectTypes favorite;
+    private EffectSelectionScreen.EffectTypes activeEffect;
     public JokerUtilCap(LivingEntity livingEntity) { this.livingEntity = livingEntity; }
 
     public void setSwanSong(boolean value) {
@@ -247,6 +253,24 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     public void setMultiCastTarget(LivingEntity target) { this.multiCastTarget = target; }
     public LivingEntity getMultiCastTarget() { return this.multiCastTarget; }
 
+    public void setFavoriteEffect(EffectSelectionScreen.EffectTypes type) {
+        this.favorite = type;
+        if (livingEntity instanceof ServerPlayerEntity) {
+            AddonPackets.sendToClient(new TrFavoriteEffectPacket(livingEntity.getId(), type), (ServerPlayerEntity) livingEntity);
+        }
+    }
+
+    public EffectSelectionScreen.EffectTypes getFavoriteEffect() { return favorite; }
+
+    public void setActiveEffect(EffectSelectionScreen.EffectTypes type) {
+        this.activeEffect = type;
+        if (livingEntity instanceof ServerPlayerEntity) {
+            AddonPackets.sendToClient(new TrActiveEffectPacket(livingEntity.getId(), type), (ServerPlayerEntity) livingEntity);
+        }
+    }
+
+    public EffectSelectionScreen.EffectTypes getActiveEffect() { return activeEffect; }
+
     public void onClone(JokerUtilCap old) {
         this.swanSong = old.swanSong;
         this.stolenAmount = old.stolenAmount;
@@ -261,6 +285,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     // Sync all the data that only this player needs to know
     public void syncWithEntityOnly(ServerPlayerEntity player) {
         AddonPackets.sendToClient(new TrSlothEffectPacket(livingEntity.getId(), swanSong, borrowedHealth), player);
+        if (favorite != null) AddonPackets.sendToClient(new TrFavoriteEffectPacket(livingEntity.getId(), favorite), player);
     }
     public void updateSynced(ServerPlayerEntity player) {
         updateModifiers(stolenAmount);
@@ -288,6 +313,8 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
             pride.put("PrideMultiCast", multicast);
         }
         nbt.put("Pride", pride);
+        if (favorite != null) MCUtil.nbtPutEnum(nbt, "FavoriteEffect", favorite);
+        if (activeEffect != null) MCUtil.nbtPutEnum(nbt, "ActiveEffect", activeEffect);
         return nbt;
     }
 
@@ -305,5 +332,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         CompoundNBT multicast = nbt.getCompound("Pride").getCompound("PrideMultiCast");
         if (MCUtil.nbtGetEnum(multicast, "MultiCast", PrideStatusEffect.MultiCastType.class) != null) this.multiCastType = MCUtil.nbtGetEnum(multicast, "MultiCast", PrideStatusEffect.MultiCastType.class);
         this.multiCastTicksLeft = multicast.getInt("TicksLeft");
+        this.favorite = MCUtil.nbtGetEnum(nbt, "FavoriteEffect", EffectSelectionScreen.EffectTypes.class);
+        this.activeEffect = MCUtil.nbtGetEnum(nbt, "ActiveEffect", EffectSelectionScreen.EffectTypes.class);
     }
 }

@@ -1,5 +1,8 @@
 package com.dikiytechies.joker.power.impl.nonstand.type;
 
+import com.dikiytechies.joker.capability.JokerUtilCap;
+import com.dikiytechies.joker.capability.JokerUtilCapProvider;
+import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.github.standobyte.jojo.JojoModConfig;
 import com.github.standobyte.jojo.action.Action;
@@ -73,6 +76,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             }
             if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get() || d.getPreviousPowerType() == ModPowers.ZOMBIE.get()).orElse(false)).orElse(false)) { vampirismTick(entity, power); }
             else if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()).orElse(false)).orElse(false)) pillarmanTick(power);
+            if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(cap -> cap.getActiveEffect() != null).orElse(false)) updatePassiveEffects(entity, power);
         }
     }
     private void vampirismTick(LivingEntity entity, INonStandPower power) {
@@ -139,7 +143,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     public boolean isLeapUnlocked(INonStandPower power) {
         if (INonStandPower.getNonStandPowerOptional(power.getUser()).isPresent()) {
             int stage = INonStandPower.getNonStandPowerOptional(power.getUser()).map(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getStage)).get().get();
-            return stage > 1;
+            return stage > 0;
         }
         return false;
     }
@@ -189,12 +193,25 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
                 () -> Effects.MOVEMENT_SLOWDOWN,
                 () -> Effects.DIG_SLOWDOWN,
                 () -> Effects.WEAKNESS,
-                () -> Effects.BLINDNESS);
+                () -> Effects.BLINDNESS,
+
+                AddonStatusEffects.SLOTH,
+                AddonStatusEffects.GREED,
+                AddonStatusEffects.ENVY,
+                AddonStatusEffects.GLUTTONY,
+                AddonStatusEffects.LUST,
+                AddonStatusEffects.PRIDE,
+                AddonStatusEffects.WRATH);
     }
     @Override
     public int getPassiveEffectLevel(Effect effect, INonStandPower power) {
         LivingEntity entity = power.getUser();
         JokerData jokerData = power.getTypeSpecificData(this).get();
+        if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).isPresent() && entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(cap -> effect == cap.getActiveEffect().effect).orElse(false)) {
+            // todo fix power clear
+            return Math.max(-1, jokerData.getStage() - 2);
+        }
+
         if (jokerData.getPreviousPowerType() == ModPowers.VAMPIRISM.get()) {
             int difficulty = entity.level.getDifficulty().getId();
             int bloodLevel = bloodLevel(power, difficulty);
@@ -217,7 +234,6 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             if (effect == Effects.JUMP)                                         return bloodLevel - 5;
             if (effect == Effects.NIGHT_VISION)                                 return 0;
         } else if (jokerData.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {
-            System.out.println("sosal");
             if (jokerData.getPreviousDataNbt().getInt("PillarmanStage") == 1) return -1;
 
             if (effect == Effects.REGENERATION) {
@@ -251,6 +267,9 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     public void clAddMissingActions(ControlScheme controlScheme, INonStandPower power) {
         super.clAddMissingActions(controlScheme, power);
         JokerData data = power.getTypeSpecificData(this).get();
+        if (data.getStage() >= 1) {
+            controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, JokerPowerInit.EFFECT_SELECT.get());
+        }
         if (data.getPreviousPowerType() == ModPowers.HAMON.get()) {
             HamonData hamon = (HamonData) power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getPreviousData).get();
             CharacterHamonTechnique technique = hamon.getCharacterTechnique();
@@ -331,6 +350,9 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     @Override
     public boolean isActionLegalInHud(Action<INonStandPower> action, INonStandPower power) {
         JokerData data = power.getTypeSpecificData(this).get();
+        if (data.getStage() >= 1) {
+            if (action == JokerPowerInit.EFFECT_SELECT.get()) return true;
+        }
         if (data.getPreviousPowerType() == ModPowers.HAMON.get()) {
 
         } else if (data.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {

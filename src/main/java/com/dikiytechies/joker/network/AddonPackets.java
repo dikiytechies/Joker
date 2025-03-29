@@ -2,6 +2,8 @@ package com.dikiytechies.joker.network;
 
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.network.packets.fromserver.*;
+import com.dikiytechies.joker.network.packets.toserver.ClAddEffectPacket;
+import com.dikiytechies.joker.network.packets.toserver.ClFavoriteEffectPacket;
 import com.github.standobyte.jojo.network.packets.IModPacketHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,6 +38,11 @@ public class AddonPackets {
         registerMessage(channel, new TrEnvyStealPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrPrideStacksPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrPrideMultiCastPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        registerMessage(channel, new TrFavoriteEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        registerMessage(channel, new TrActiveEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        registerMessage(channel, new ClAddEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        registerMessage(channel, new ClFavoriteEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
     private static <MSG> void registerMessage(SimpleChannel channel, IModPacketHandler<MSG> handler, Optional<NetworkDirection> networkDirection) {
