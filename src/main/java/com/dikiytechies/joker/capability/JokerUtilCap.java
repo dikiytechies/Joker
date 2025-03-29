@@ -1,19 +1,19 @@
 package com.dikiytechies.joker.capability;
 
 import com.dikiytechies.joker.network.AddonPackets;
-import com.dikiytechies.joker.network.packets.fromserver.TrEnvyStealPacket;
-import com.dikiytechies.joker.network.packets.fromserver.TrSlothDebuffPacket;
-import com.dikiytechies.joker.network.packets.fromserver.TrSlothEffectPacket;
+import com.dikiytechies.joker.network.packets.fromserver.*;
+import com.dikiytechies.joker.potion.PrideStatusEffect;
+import com.github.standobyte.jojo.client.ClientUtil;
 import com.github.standobyte.jojo.util.mc.MCUtil;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.Hand;
 import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.JsonUtils;
 
-import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
@@ -26,6 +26,15 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     private double stolenAmount;
     private int modifierTicksLeft = 0;
     private int maxTicks;
+    private int prideTargetStacks;
+    private int prideTargetStacksTicksLeft;
+    private int prideAttackerStacks;
+    private int prideAttackerStacksTicksLeft;
+    private final int PRIDE_TICKS_ATTACKER = 900;
+    private final int PRIDE_TICKS_TARGET = 140;
+    private PrideStatusEffect.MultiCastType multiCastType;
+    private int multiCastTicksLeft;
+    private LivingEntity multiCastTarget;
     public JokerUtilCap(LivingEntity livingEntity) { this.livingEntity = livingEntity; }
 
     public void setSwanSong(boolean value) {
@@ -152,6 +161,92 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         MCUtil.removeAttributeModifier(livingEntity, Attributes.JUMP_STRENGTH, JUMP_STRENGTH);
     }
 
+    public void setPrideStacks(int stacks, TrPrideStacksPacket.StackType stackType) {
+        if (stackType == TrPrideStacksPacket.StackType.TARGET) {
+            this.prideTargetStacks = stacks;
+            this.prideTargetStacksTicksLeft = Math.max(this.prideTargetStacksTicksLeft, PRIDE_TICKS_TARGET);
+        } else if (stackType == TrPrideStacksPacket.StackType.ATTACKER) {
+            this.prideAttackerStacks = stacks;
+            this.prideAttackerStacksTicksLeft = Math.max(this.prideAttackerStacksTicksLeft, PRIDE_TICKS_ATTACKER);
+        } else if (stackType == TrPrideStacksPacket.StackType.TARGET_TICK) {
+            this.prideTargetStacksTicksLeft = stacks;
+        } else if (stackType == TrPrideStacksPacket.StackType.ATTACKER_TICK)
+            this.prideAttackerStacksTicksLeft = stacks;
+        if (livingEntity instanceof ServerPlayerEntity) {
+            AddonPackets.sendToClient(new TrPrideStacksPacket(livingEntity.getId(), stacks, stackType), (ServerPlayerEntity) livingEntity);
+        }
+    }
+
+    public void setPrideTargetStacks(int stacks) {
+        setPrideStacks(stacks, TrPrideStacksPacket.StackType.TARGET);
+    }
+
+    public void setPrideAttackerStacks(int stacks) {
+        setPrideStacks(stacks, TrPrideStacksPacket.StackType.ATTACKER);
+    }
+
+    public void addPrideTargetStacks(int stacks) {
+        setPrideTargetStacks(getPrideTargetStacks() + stacks);
+    }
+
+    public void addPrideAttackerStacks(int stacks) {
+        setPrideAttackerStacks(getPrideAttackerStacks() + stacks);
+    }
+
+    public int getPrideTargetStacks() { return prideTargetStacks; }
+    public int getPrideAttackerStacks() { return prideAttackerStacks; }
+    public int getPrideTargetTicks() { return prideTargetStacksTicksLeft; }
+    public int getPrideAttackerTicks() { return prideAttackerStacksTicksLeft; }
+    public void setPrideTargetStacksTicks(int ticks) {
+        setPrideStacks(ticks, TrPrideStacksPacket.StackType.TARGET_TICK);
+    }
+    public void setPrideAttackerTicks(int ticks) {
+        setPrideStacks(ticks, TrPrideStacksPacket.StackType.ATTACKER_TICK);
+    }
+
+    public void prideTick() {
+        if (prideTargetStacksTicksLeft > 0) {
+            prideTargetStacksTicksLeft--;
+            if (prideTargetStacksTicksLeft == 0) {
+                setPrideTargetStacks(0);
+            }
+        }
+        if (prideAttackerStacksTicksLeft > 0) {
+            prideAttackerStacksTicksLeft--;
+            if (prideAttackerStacksTicksLeft == 0) {
+                setPrideAttackerStacks(0);
+            }
+        }//todo multicast for attacks and abilities
+        if (multiCastTicksLeft > 0) {
+            if (multiCastType.delay - multiCastTicksLeft == 0) {
+                if (PrideStatusEffect.getMultiCastSound(multiCastType) != null) {
+                    livingEntity.level.playSound(null, livingEntity.blockPosition(), PrideStatusEffect.getMultiCastSound(multiCastType), livingEntity.getSoundSource(), 1.0f, 1.0f);
+                    livingEntity.swing(Hand.MAIN_HAND);
+                }
+            } else if (multiCastTicksLeft == 1) {
+                setPrideMultiCast(PrideStatusEffect.MultiCastType.X1);
+                multiCastTicksLeft++;
+            } else if (PrideStatusEffect.MultiCastType.X3.delay - multiCastTicksLeft == 0) {
+                livingEntity.swing(Hand.MAIN_HAND);
+            } else if (PrideStatusEffect.MultiCastType.X2.delay - multiCastTicksLeft == 0) {
+                livingEntity.swing(Hand.MAIN_HAND);
+            }
+            multiCastTicksLeft--;
+        }
+    }
+
+    public void setPrideMultiCast(PrideStatusEffect.MultiCastType type) {
+        this.multiCastType = type;
+        this.multiCastTicksLeft = type.delay;
+        if (livingEntity instanceof ServerPlayerEntity) {
+            AddonPackets.sendToClient(new TrPrideMultiCastPacket(livingEntity.getId(), type), (ServerPlayerEntity) livingEntity);
+        }
+    }
+    public PrideStatusEffect.MultiCastType getMultiCastType() { return multiCastType; }
+    public int getMultiCastTicks() { return multiCastTicksLeft; }
+    public void setMultiCastTarget(LivingEntity target) { this.multiCastTarget = target; }
+    public LivingEntity getMultiCastTarget() { return this.multiCastTarget; }
+
     public void onClone(JokerUtilCap old) {
         this.swanSong = old.swanSong;
         this.stolenAmount = old.stolenAmount;
@@ -167,6 +262,9 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     public void syncWithEntityOnly(ServerPlayerEntity player) {
         AddonPackets.sendToClient(new TrSlothEffectPacket(livingEntity.getId(), swanSong, borrowedHealth), player);
     }
+    public void updateSynced(ServerPlayerEntity player) {
+        updateModifiers(stolenAmount);
+    }
     @Override
     public CompoundNBT serializeNBT() {
         CompoundNBT nbt = new CompoundNBT();
@@ -176,6 +274,20 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         stolen.putInt("TicksLeft", modifierTicksLeft);
         stolen.putInt("MaxTicksLeft", maxTicks);
         nbt.put("Envy", stolen);
+        CompoundNBT pride = new CompoundNBT();
+        CompoundNBT prideStacks = new CompoundNBT();
+        prideStacks.putInt("AttackerStacks", prideAttackerStacks);
+        prideStacks.putInt("AttackerTicksLeft", prideAttackerStacksTicksLeft);
+        prideStacks.putInt("TargetStacks", prideTargetStacks);
+        prideStacks.putInt("TargetTicksLeft", prideTargetStacksTicksLeft);
+        pride.put("PrideStacks", prideStacks);
+        if (multiCastType != null) {
+            CompoundNBT multicast = new CompoundNBT();
+            MCUtil.nbtPutEnum(multicast, "MultiCast", multiCastType);
+            multicast.putInt("TicksLeft", multiCastTicksLeft);
+            pride.put("PrideMultiCast", multicast);
+        }
+        nbt.put("Pride", pride);
         return nbt;
     }
 
@@ -185,5 +297,13 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         this.stolenAmount = nbt.getCompound("Envy").getDouble("StolenAttributesAmount");
         this.modifierTicksLeft = nbt.getCompound("Envy").getInt("TicksLeft");
         this.maxTicks = nbt.getCompound("Envy").getInt("MaxTicksLeft");
+        CompoundNBT stacks = nbt.getCompound("Pride").getCompound("PrideStacks");
+        this.prideAttackerStacks = stacks.getInt("AttackerStacks");
+        this.prideAttackerStacksTicksLeft = stacks.getInt("AttackerTicksLeft");
+        this.prideTargetStacks = stacks.getInt("TargetStacks");
+        this.prideTargetStacksTicksLeft = stacks.getInt("TargetTicksLeft");
+        CompoundNBT multicast = nbt.getCompound("Pride").getCompound("PrideMultiCast");
+        if (MCUtil.nbtGetEnum(multicast, "MultiCast", PrideStatusEffect.MultiCastType.class) != null) this.multiCastType = MCUtil.nbtGetEnum(multicast, "MultiCast", PrideStatusEffect.MultiCastType.class);
+        this.multiCastTicksLeft = multicast.getInt("TicksLeft");
     }
 }

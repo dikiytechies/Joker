@@ -1,3 +1,20 @@
 {
-  
+  "pride_attack": {
+    "sounds": ["joker:pride_attack_1", "joker:pride_attack_2", "joker:pride_attack_3"]
+  },
+  "pride_proc": {
+    "sounds": ["joker:pride_proc"]
+  },
+  "pride_end": {
+    "sounds": ["joker:pride_end"]
+  },
+  "pride_multicast_x2": {
+    "sounds": ["joker:pride_multicast_x2"]
+  },
+  "pride_multicast_x3": {
+    "sounds": ["joker:pride_multicast_x3"]
+  },
+  "pride_multicast_x4": {
+    "sounds": ["joker:pride_multicast_x4"]
+  }
 }

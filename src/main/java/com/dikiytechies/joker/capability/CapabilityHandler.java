@@ -46,16 +46,19 @@ public class CapabilityHandler {
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         syncAttachedData(event.getPlayer());
+        updateSyncedData(event.getPlayer());
     }
 
     @SubscribeEvent
     public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         syncAttachedData(event.getPlayer());
+        updateSyncedData(event.getPlayer());
     }
 
     @SubscribeEvent
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
         syncAttachedData(event.getPlayer());
+        updateSyncedData(event.getPlayer());
     }
 
     @SubscribeEvent
@@ -74,6 +77,12 @@ public class CapabilityHandler {
         player.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(data -> {
             data.syncWithEntityOnly(serverPlayer);
             data.syncWithAnyPlayer(serverPlayer);
+        });
+    }
+    private static void updateSyncedData(PlayerEntity player) {
+        ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+        player.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(data -> {
+            data.updateSynced(serverPlayer);
         });
     }
 }

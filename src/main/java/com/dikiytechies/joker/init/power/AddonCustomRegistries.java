@@ -1,6 +1,7 @@
 package com.dikiytechies.joker.init.power;
 
 import com.dikiytechies.joker.init.AddonStatusEffects;
+import com.dikiytechies.joker.init.Sounds;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import net.minecraftforge.eventbus.api.IEventBus;
 
@@ -12,5 +13,6 @@ public class AddonCustomRegistries {
     }
     public static void initVanillaRegistries(IEventBus modEventBus) {
         AddonStatusEffects.EFFECTS.register(modEventBus);
+        Sounds.SOUNDS.register(modEventBus);
     }
 }

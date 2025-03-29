@@ -3,17 +3,12 @@ package com.dikiytechies.joker.potion;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.github.standobyte.jojo.potion.StatusEffect;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.potion.EffectType;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EntityPredicates;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class LustStatusEffect extends StatusEffect {
     public LustStatusEffect(EffectType type, int liquidColor) {
@@ -33,7 +28,7 @@ public class LustStatusEffect extends StatusEffect {
                 if (negative == 1) {
                     entity.hurt(DamageSource.thorns(livingEntity).bypassInvul().bypassArmor().bypassMagic(), Math.min(4.5f + Math.abs(damageHealAmount), entity.getMaxHealth() * 0.65f));
                     livingEntity.setHealth(0.12f + livingEntity.getHealth());
-                } else if (negative == -1 && INonStandPower.getNonStandPowerOptional(livingEntity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
+                } else if (negative == -1 && (amplifier > 0 || INonStandPower.getNonStandPowerOptional(livingEntity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false))) {
                     livingEntity.setHealth(0.12f + livingEntity.getHealth() + Math.abs(damageHealAmount));
                     entity.hurt(DamageSource.thorns(livingEntity).bypassInvul().bypassArmor().bypassMagic(), 4.5f);
                 }

@@ -1,12 +1,9 @@
 package com.dikiytechies.joker.potion;
 
-import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.github.standobyte.jojo.potion.StatusEffect;
-import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.potion.EffectType;
-import net.minecraft.util.DamageSource;
 
 public class GluttonyStatusEffect extends StatusEffect {
     public GluttonyStatusEffect(EffectType type, int liquidColor) {

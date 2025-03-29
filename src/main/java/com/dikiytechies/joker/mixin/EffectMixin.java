@@ -2,7 +2,6 @@ package com.dikiytechies.joker.mixin;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.potion.Effect;
-import net.minecraft.potion.EffectType;
 import net.minecraft.potion.Effects;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.spongepowered.asm.mixin.Mixin;

@@ -1,6 +1,7 @@
 package com.dikiytechies.joker.network.packets.fromserver;
 
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
+import com.dikiytechies.joker.potion.PrideStatusEffect;
 import com.github.standobyte.jojo.client.ClientUtil;
 import com.github.standobyte.jojo.network.packets.IModPacketHandler;
 import net.minecraft.entity.Entity;
@@ -10,43 +11,39 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class TrEnvyStealPacket {
+public class TrPrideMultiCastPacket {
     private final int entityId;
-    private final double amount;
-    private final int ticks;
+    private final PrideStatusEffect.MultiCastType type;
 
-    public TrEnvyStealPacket(int entityId, double amount, int ticks) {
+    public TrPrideMultiCastPacket(int entityId, PrideStatusEffect.MultiCastType type) {
         this.entityId = entityId;
-        this.amount = amount;
-        this.ticks = ticks;
+        this.type = type;
     }
-
-    public static class Handler implements IModPacketHandler<TrEnvyStealPacket> {
+    public static class Handler implements IModPacketHandler<TrPrideMultiCastPacket> {
         @Override
-        public void encode(TrEnvyStealPacket msg, PacketBuffer buf) {
+        public void encode(TrPrideMultiCastPacket msg, PacketBuffer buf) {
             buf.writeInt(msg.entityId);
-            buf.writeDouble(msg.amount);
-            buf.writeInt(msg.ticks);
+            buf.writeEnum(msg.type);
         }
 
         @Override
-        public TrEnvyStealPacket decode(PacketBuffer buf) {
-            return new TrEnvyStealPacket(buf.readInt(), buf.readDouble(), buf.readInt());
+        public TrPrideMultiCastPacket decode(PacketBuffer buf) {
+            return new TrPrideMultiCastPacket(buf.readInt(), buf.readEnum(PrideStatusEffect.MultiCastType.class));
         }
 
         @Override
-        public void handle(TrEnvyStealPacket msg, Supplier<NetworkEvent.Context> ctx) {
+        public void handle(TrPrideMultiCastPacket msg, Supplier<NetworkEvent.Context> ctx) {
             Entity entity = ClientUtil.getEntityById(msg.entityId);
             if (entity instanceof LivingEntity) {
                 entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
-                    cap.addStolenAmount(msg.amount, msg.ticks);
+                    cap.setPrideMultiCast(msg.type);
                 });
             }
         }
 
         @Override
-        public Class<TrEnvyStealPacket> getPacketClass() {
-            return TrEnvyStealPacket.class;
+        public Class<TrPrideMultiCastPacket> getPacketClass() {
+            return TrPrideMultiCastPacket.class;
         }
     }
 }

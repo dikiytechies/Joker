@@ -4,15 +4,16 @@ import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.capability.JokerUtilCap;
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
 import com.dikiytechies.joker.init.AddonStatusEffects;
+import com.dikiytechies.joker.init.Sounds;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.potion.GreedStatusEffect;
+import com.dikiytechies.joker.potion.PrideStatusEffect;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
 import com.github.standobyte.jojo.capability.entity.PlayerUtilCapProvider;
 import com.github.standobyte.jojo.entity.stand.StandEntity;
 import com.github.standobyte.jojo.init.ModStatusEffects;
 import com.github.standobyte.jojo.potion.BleedingEffect;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
-import com.github.standobyte.jojo.util.general.MathUtil;
 import com.github.standobyte.jojo.util.mc.MCUtil;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -22,7 +23,7 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.SoundCategory;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -39,12 +40,14 @@ public class GameplayEventHandler {
         slothDeath(event);
         eraseEnvyDataOnDeath(event);
     }
+    //todo sloth death fix
     private static void slothDeath(LivingDeathEvent event) {
         LivingEntity entity = event.getEntityLiving();
         if (entity.hasEffect(AddonStatusEffects.SLOTH.get())) {
             EffectInstance sloth = entity.getActiveEffectsMap().get(AddonStatusEffects.SLOTH.get());
             if (INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
-                if (!entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
+                if (!entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false))
+                    entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
             } else if (sloth.getDuration() > 90) {
                 entity.removeEffect(sloth.getEffect());
                 entity.addEffect(new EffectInstance(AddonStatusEffects.SLOTH.get(), 90, sloth.getAmplifier(), sloth.isAmbient(), sloth.isVisible(), sloth.showIcon()));
@@ -76,6 +79,8 @@ public class GameplayEventHandler {
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingDamage(LivingDamageEvent event) {
+        prideMultiCast(event); //todo anti-recursive system
+        prideStackDamage(event);
         stealAttributesLivingEnvy(event);
         consumeOrGiveEnergyFromSociopathy(event);
         wrathDamage(event);
@@ -115,7 +120,7 @@ public class GameplayEventHandler {
     }
     private static void borrowHealth(LivingDamageEvent event) {
         LivingEntity entity = event.getEntityLiving();
-        if (!entity.level.isClientSide() && event.getAmount() >= entity.getHealth() && !event.isCanceled())
+        if (event.getAmount() >= entity.getHealth() && !event.isCanceled())
             entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
             if (cap.isSwanSong()) cap.setBorrowedHealth(event.getAmount() + cap.getBorrowedHealth());
         });
@@ -141,7 +146,7 @@ public class GameplayEventHandler {
                 int wrathAmpl = damagingEntity.getEffect(AddonStatusEffects.WRATH.get()).getAmplifier();
                 float additionalDamage = damagingEntity.getHealth() * 0.075f * (wrathAmpl + 1);
                 event.setAmount(event.getAmount() + additionalDamage);
-                if (wrathAmpl < 2 && !INonStandPower.getNonStandPowerOptional(damagingEntity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
+                if (wrathAmpl < 1 && !INonStandPower.getNonStandPowerOptional(damagingEntity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
                     if (((damagingEntity instanceof PlayerEntity) && !((PlayerEntity) damagingEntity).isCreative()) || (!(damagingEntity instanceof PlayerEntity) && !damagingEntity.isSpectator())) {
                         //damagingEntity.hurt(DamageSource.thorns(damagingEntity).bypassArmor().bypassMagic().bypassInvul(), additionalDamage / (wrathAmpl + 1));
                         damagingEntity.setHealth(damagingEntity.getHealth() - additionalDamage / (wrathAmpl + 1));
@@ -152,6 +157,48 @@ public class GameplayEventHandler {
                 if (bleedingAmpl > -1) {
                     targetEntity.addEffect(new EffectInstance(ModStatusEffects.BLEEDING.get(), 75 * (wrathAmpl + 1), bleedingAmpl, false, false, false));
                 }
+            }
+        }
+    }
+    private static void prideStackDamage(LivingDamageEvent event) {
+        LivingEntity target = event.getEntityLiving();
+        if (!target.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity && !event.isCanceled() && target != event.getSource().getEntity()) {
+            LivingEntity attacker = (LivingEntity) event.getSource().getEntity();
+            target.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(targetCap -> attacker.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
+                int amplifier = attacker.hasEffect(AddonStatusEffects.PRIDE.get())? attacker.getEffect(AddonStatusEffects.PRIDE.get()).getAmplifier(): 0;
+                if (cap.getPrideAttackerStacks() > 0) {
+                    float lifeSteal = target.getMaxHealth() * 0.15f * (amplifier + 1);
+                    attacker.heal(lifeSteal);
+                    event.setAmount(event.getAmount() + lifeSteal);
+                    if (attacker instanceof PlayerEntity) ((PlayerEntity) attacker).magicCrit(target);
+                    cap.addPrideAttackerStacks(-1);
+                    if (cap.getPrideAttackerStacks() == 0) {
+                        cap.setPrideAttackerTicks(0);
+                        attacker.level.playSound(null, attacker.blockPosition(), Sounds.PRIDE_END.get(), attacker.getSoundSource(), 1.0f, 1.0f);
+                    } else attacker.level.playSound(null, attacker.blockPosition(), Sounds.PRIDE_ATTACK.get(), attacker.getSoundSource(), 1.0f, 1.0f);
+                } else if (attacker.hasEffect(AddonStatusEffects.PRIDE.get())) {
+                    if (targetCap.getPrideTargetStacks() >= 2 - amplifier) {
+                        attacker.level.playSound(null, attacker.blockPosition(), Sounds.PRIDE_PROC.get(), attacker.getSoundSource(), 1.0f, 1.0f);
+                        targetCap.setPrideTargetStacks(0);
+                        targetCap.setPrideTargetStacksTicks(0);
+                        cap.setPrideAttackerStacks(3 + amplifier);
+                    } else if (cap.getPrideAttackerStacks() == 0) {
+                        targetCap.addPrideTargetStacks(1);
+                    }
+                }
+            }));
+        }
+    }
+    private static void prideMultiCast(LivingDamageEvent event) {
+        LivingEntity target = event.getEntityLiving();
+        if (!target.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity && target != event.getSource().getEntity()) {
+            LivingEntity attacker = (LivingEntity) event.getSource().getEntity();
+            if (attacker.hasEffect(AddonStatusEffects.PRIDE.get())) {
+                int amplifier = attacker.getEffect(AddonStatusEffects.PRIDE.get()).getAmplifier();
+                attacker.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
+                    cap.setPrideMultiCast(PrideStatusEffect.applyMultiCast(amplifier));
+                    cap.setMultiCastTarget(target);
+                });
             }
         }
     }
@@ -173,10 +220,11 @@ public class GameplayEventHandler {
         greedExpiry(event);
     }
     private static void slothExpiry(PotionEvent.PotionExpiryEvent event) {
-        if (event.getPotionEffect().getEffect().getEffect() == AddonStatusEffects.SLOTH.get() && !event.getEntityLiving().level.isClientSide()) {
+        if (event.getPotionEffect().getEffect().getEffect() == AddonStatusEffects.SLOTH.get()) {
             LivingEntity entity = event.getEntityLiving();
             entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
                 if (cap.isSwanSong()) {
+                    entity.removeEffect(event.getPotionEffect().getEffect());
                     cap.setSwanSong(false);
                     if (!(entity instanceof PlayerEntity) || !((PlayerEntity) entity).abilities.instabuild && !entity.isSpectator()) {
                         entity.hurt(DamageSource.WITHER.bypassMagic().bypassArmor().bypassInvul(), cap.getBorrowedHealth());
@@ -210,6 +258,7 @@ public class GameplayEventHandler {
     public static void livingTick(LivingEvent.LivingUpdateEvent event) {
         envyTick(event);
         lustTick(event);
+        prideTick(event);
         tickDelayDamage(event);
     }
     private static void lustTick(LivingEvent.LivingUpdateEvent event) {
@@ -226,6 +275,10 @@ public class GameplayEventHandler {
     private static void envyTick(LivingEvent.LivingUpdateEvent event) {
         LivingEntity entity = event.getEntityLiving();
         if (!entity.level.isClientSide()) entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(JokerUtilCap::envyTick);
+    }
+    private static void prideTick(LivingEvent.LivingUpdateEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(JokerUtilCap::prideTick);
     }
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onHeal(LivingHealEvent event) {

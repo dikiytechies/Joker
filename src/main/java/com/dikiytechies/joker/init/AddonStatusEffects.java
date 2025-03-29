@@ -1,10 +1,7 @@
 package com.dikiytechies.joker.init;
 
 import com.dikiytechies.joker.AddonMain;
-import com.dikiytechies.joker.potion.GluttonyStatusEffect;
-import com.dikiytechies.joker.potion.GreedStatusEffect;
-import com.dikiytechies.joker.potion.LustStatusEffect;
-import com.dikiytechies.joker.potion.SlothStatusEffect;
+import com.dikiytechies.joker.potion.*;
 import com.github.standobyte.jojo.potion.StatusEffect;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectType;
@@ -27,5 +24,6 @@ public class AddonStatusEffects {
             () -> new StatusEffect(EffectType.NEUTRAL, 0x5d825a).setUncurable());
     public static final RegistryObject<GreedStatusEffect> GREED = EFFECTS.register("greed",
             () -> new GreedStatusEffect(EffectType.NEUTRAL, 0xf9f914).setUncurable());
-
+    public static final RegistryObject<PrideStatusEffect> PRIDE = EFFECTS.register("pride",
+            () -> new PrideStatusEffect(EffectType.NEUTRAL, 0x1483f9).setUncurable());
 }
