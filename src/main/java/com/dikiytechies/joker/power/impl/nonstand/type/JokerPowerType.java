@@ -73,6 +73,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
         if (INonStandPower.getNonStandPowerOptional(power.getUser()).isPresent()) {
             if (power.getEnergy() == power.getMaxEnergy() && INonStandPower.getNonStandPowerOptional(power.getUser()).map(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getStage)).get().get() != 3) {
                 INonStandPower.getNonStandPowerOptional(power.getUser()).ifPresent(pow -> pow.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(joker -> joker.setStage(joker.getStage() + 1)));
+                power.clUpdateHud();
             }
             if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.VAMPIRISM.get() || d.getPreviousPowerType() == ModPowers.ZOMBIE.get()).orElse(false)).orElse(false)) { vampirismTick(entity, power); }
             else if (INonStandPower.getNonStandPowerOptional(power.getUser()).map(p -> p.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(d -> d.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()).orElse(false)).orElse(false)) pillarmanTick(power);
@@ -208,7 +209,6 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
         LivingEntity entity = power.getUser();
         JokerData jokerData = power.getTypeSpecificData(this).get();
         if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).isPresent() && entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(cap -> effect == cap.getActiveEffect().effect).orElse(false)) {
-            // todo fix power clear
             return Math.max(-1, jokerData.getStage() - 2);
         }
 
@@ -267,7 +267,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     public void clAddMissingActions(ControlScheme controlScheme, INonStandPower power) {
         super.clAddMissingActions(controlScheme, power);
         JokerData data = power.getTypeSpecificData(this).get();
-        if (data.getStage() >= 1) {
+        if (data.getStage() >= 2) {
             controlScheme.addIfMissing(ControlScheme.Hotbar.RIGHT_CLICK, JokerPowerInit.EFFECT_SELECT.get());
         }
         if (data.getPreviousPowerType() == ModPowers.HAMON.get()) {
@@ -350,7 +350,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     @Override
     public boolean isActionLegalInHud(Action<INonStandPower> action, INonStandPower power) {
         JokerData data = power.getTypeSpecificData(this).get();
-        if (data.getStage() >= 1) {
+        if (data.getStage() >= 2) {
             if (action == JokerPowerInit.EFFECT_SELECT.get()) return true;
         }
         if (data.getPreviousPowerType() == ModPowers.HAMON.get()) {

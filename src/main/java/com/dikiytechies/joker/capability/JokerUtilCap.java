@@ -66,6 +66,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         this.damageDelay = DELAY;
         if (livingEntity instanceof ServerPlayerEntity) {
             ServerPlayerEntity player = (ServerPlayerEntity) livingEntity;
+            System.out.println(livingEntity.getId() + " " + delayedDamage + " " + player);
             //todo fix serverplayer == livingentity crash
             AddonPackets.sendToClient(new TrSlothDebuffPacket(livingEntity.getId(), this.delayedDamage), player);
         }
@@ -275,6 +276,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         this.swanSong = old.swanSong;
         this.stolenAmount = old.stolenAmount;
         this.modifierTicksLeft = old.modifierTicksLeft;
+        this.favorite = old.favorite;
     }
 
 
@@ -286,6 +288,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     public void syncWithEntityOnly(ServerPlayerEntity player) {
         AddonPackets.sendToClient(new TrSlothEffectPacket(livingEntity.getId(), swanSong, borrowedHealth), player);
         if (favorite != null) AddonPackets.sendToClient(new TrFavoriteEffectPacket(livingEntity.getId(), favorite), player);
+        if (activeEffect != null) AddonPackets.sendToClient(new TrActiveEffectPacket(livingEntity.getId(), activeEffect), player);
     }
     public void updateSynced(ServerPlayerEntity player) {
         updateModifiers(stolenAmount);
