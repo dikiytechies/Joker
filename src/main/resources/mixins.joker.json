@@ -6,6 +6,7 @@
   "mixins": [
     "ClientEventHandlerMixin",
     "EffectMixin",
+    "FoodStatsMixin",
     "GameplayEventHandlerMixin",
     "HamonDataMixin",
     "HungryZombieEntityMixin",

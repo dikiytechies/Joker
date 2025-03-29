@@ -4,6 +4,7 @@ import com.dikiytechies.joker.client.ui.screen.EffectSelectionScreen;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.*;
+import com.dikiytechies.joker.potion.GreedStatusEffect;
 import com.dikiytechies.joker.potion.PrideStatusEffect;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerPowerType;
@@ -13,6 +14,7 @@ import com.github.standobyte.jojo.util.mc.MCUtil;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Hand;
@@ -41,6 +43,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     private LivingEntity multiCastTarget;
     private EffectSelectionScreen.EffectTypes favorite;
     private EffectSelectionScreen.EffectTypes activeEffect;
+    private float greedMaxHealth;
     public JokerUtilCap(LivingEntity livingEntity) { this.livingEntity = livingEntity; }
 
     public void setSwanSong(boolean value) {
@@ -292,6 +295,8 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     }
     public void updateSynced(ServerPlayerEntity player) {
         updateModifiers(stolenAmount);
+        MCUtil.applyAttributeModifier(player, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", greedMaxHealth, AttributeModifier.Operation.ADDITION));
+        MCUtil.applyAttributeModifier(player, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", -greedMaxHealth, AttributeModifier.Operation.ADDITION));
     }
     @Override
     public CompoundNBT serializeNBT() {
@@ -318,6 +323,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         nbt.put("Pride", pride);
         if (favorite != null) MCUtil.nbtPutEnum(nbt, "FavoriteEffect", favorite);
         if (activeEffect != null) MCUtil.nbtPutEnum(nbt, "ActiveEffect", activeEffect);
+        if (livingEntity instanceof PlayerEntity) nbt.putFloat("GreedMaxHealth", livingEntity.getMaxHealth() - GreedStatusEffect.getMaxHealthWithoutGreed(livingEntity));
         return nbt;
     }
 
@@ -337,5 +343,6 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         this.multiCastTicksLeft = multicast.getInt("TicksLeft");
         this.favorite = MCUtil.nbtGetEnum(nbt, "FavoriteEffect", EffectSelectionScreen.EffectTypes.class);
         this.activeEffect = MCUtil.nbtGetEnum(nbt, "ActiveEffect", EffectSelectionScreen.EffectTypes.class);
+        this.greedMaxHealth = nbt.getFloat("GreedMaxHealth");
     }
 }

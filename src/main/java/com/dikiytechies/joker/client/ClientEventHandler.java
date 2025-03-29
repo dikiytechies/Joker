@@ -2,20 +2,22 @@ package com.dikiytechies.joker.client;
 
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.init.AddonStatusEffects;
-import com.dikiytechies.joker.potion.GreedStatusEffect;
 import com.github.standobyte.jojo.client.ClientUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.renderer.entity.model.PlayerModel;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = AddonMain.MOD_ID,value = Dist.CLIENT)
-public class ClientHandler {
+public class ClientEventHandler {
+    private final Minecraft mc;
     private static boolean originalHatVisibility;
     private static boolean originalJacketVisibility;
     private static boolean originalLeftPantsVisibility;
@@ -23,6 +25,10 @@ public class ClientHandler {
     private static boolean originalRightSleeveVisibility;
     private static boolean originalLeftSleeveVisibility;
     private static boolean hasStoredOriginalValues = false;
+
+    public ClientEventHandler(Minecraft mc) {
+        this.mc = mc;
+    }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     @OnlyIn(Dist.CLIENT)
@@ -58,4 +64,10 @@ public class ClientHandler {
             }
         }
     }
+//    @SubscribeEvent(priority = EventPriority.HIGH)
+//    public void disableArmor(RenderGameOverlayEvent.Pre event) {
+//        if (event.getType() == RenderGameOverlayEvent.ElementType.ARMOR && mc.player.hasEffect(AddonStatusEffects.GREED.get())) {
+//            //todo golden hearts
+//        }
+//    }
 }
