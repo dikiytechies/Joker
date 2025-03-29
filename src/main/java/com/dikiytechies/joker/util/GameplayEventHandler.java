@@ -166,7 +166,7 @@ public class GameplayEventHandler {
             target.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(targetCap -> attacker.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
                 int amplifier = attacker.hasEffect(AddonStatusEffects.PRIDE.get())? attacker.getEffect(AddonStatusEffects.PRIDE.get()).getAmplifier(): 0;
                 if (cap.getPrideAttackerStacks() > 0) {
-                    float lifeSteal = target.getMaxHealth() * 0.15f * (amplifier + 1);
+                    float lifeSteal = event.getAmount() * 0.15f * (amplifier + 1);
                     attacker.heal(lifeSteal);
                     event.setAmount(event.getAmount() + lifeSteal);
                     if (attacker instanceof PlayerEntity) ((PlayerEntity) attacker).magicCrit(target);
