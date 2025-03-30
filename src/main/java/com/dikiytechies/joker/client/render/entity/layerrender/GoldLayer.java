@@ -31,7 +31,7 @@ public class GoldLayer<T extends LivingEntity, M extends EntityModel<T>> extends
 
     public GoldLayer(IEntityRenderer<T, M> renderer, boolean slim) {
         super(renderer);
-        this.armorModel = new GreedArmorModel<>(0F, slim);
+        this.armorModel = new GreedArmorModel<>(0.0F, slim);
     }
     @Override
     public void render(MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ticks, float yRot, float xRot){
@@ -55,6 +55,8 @@ public class GoldLayer<T extends LivingEntity, M extends EntityModel<T>> extends
             if (model instanceof PlayerModel) {
                 PlayerModel player = (PlayerModel) model;
                 armorModel.crouching = player.crouching;
+                armorModel.rightArmPose = player.rightArmPose;
+                armorModel.leftArmPose = player.leftArmPose;
             }
             matrixStack.popPose();
         }
