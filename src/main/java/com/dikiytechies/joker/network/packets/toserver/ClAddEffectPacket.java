@@ -5,7 +5,6 @@ import com.dikiytechies.joker.client.ui.screen.EffectSelectionScreen;
 import com.github.standobyte.jojo.network.packets.IModPacketHandler;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.potion.EffectInstance;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;

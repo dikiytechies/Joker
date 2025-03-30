@@ -1,16 +1,11 @@
 package com.dikiytechies.joker.client.ui.screen;
 
-import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.client.ui.widget.EffectButton;
 import com.dikiytechies.joker.init.AddonStatusEffects;
-import com.dikiytechies.joker.network.AddonPackets;
-import com.dikiytechies.joker.network.packets.toserver.ClAddEffectPacket;
 import com.github.standobyte.jojo.potion.StatusEffect;
 import net.minecraft.client.gui.chat.NarratorChatListener;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TranslationTextComponent;
 
 public class EffectSelectionScreen extends Screen {

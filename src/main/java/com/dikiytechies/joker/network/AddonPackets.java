@@ -41,6 +41,8 @@ public class AddonPackets {
         registerMessage(channel, new TrFavoriteEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrActiveEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrJokerSleepStatePacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        registerMessage(channel, new CommonConfigPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        registerMessage(channel, new ResetSyncedCommonConfigPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
         registerMessage(channel, new ClAddEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_SERVER));
         registerMessage(channel, new ClFavoriteEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_SERVER));

@@ -1,6 +1,5 @@
 package com.dikiytechies.joker.power.impl.nonstand.type;
 
-import com.dikiytechies.joker.capability.JokerUtilCap;
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
 import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;

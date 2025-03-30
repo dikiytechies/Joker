@@ -23,4 +23,9 @@ public class Sounds {
             () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "pride_multicast_x3")));
     public static final RegistryObject<SoundEvent> PRIDE_MULTICAST_X4 = SOUNDS.register("pride_multicast_x4",
             () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "pride_multicast_x4")));
+
+    public static final RegistryObject<SoundEvent> JOKER_IGGY_LAUGH = SOUNDS.register("joker_iggy_laugh",
+            () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "joker_iggy_laugh")));
+    public static final RegistryObject<SoundEvent> JOKER_IGGY_RINGTONE = SOUNDS.register("joker_iggy_ringtone",
+            () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "joker_iggy_ringtone")));
 }

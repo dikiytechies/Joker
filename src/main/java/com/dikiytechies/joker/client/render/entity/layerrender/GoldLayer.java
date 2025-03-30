@@ -5,8 +5,6 @@ import com.dikiytechies.joker.client.render.entity.model.GreedArmorModel;
 import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.potion.GreedStatusEffect;
 import com.github.standobyte.jojo.client.render.entity.layerrenderer.IFirstPersonHandLayer;
-import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
-import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;

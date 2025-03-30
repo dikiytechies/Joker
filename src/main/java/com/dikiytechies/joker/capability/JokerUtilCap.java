@@ -1,15 +1,10 @@
 package com.dikiytechies.joker.capability;
 
 import com.dikiytechies.joker.client.ui.screen.EffectSelectionScreen;
-import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.*;
 import com.dikiytechies.joker.potion.GreedStatusEffect;
 import com.dikiytechies.joker.potion.PrideStatusEffect;
-import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
-import com.dikiytechies.joker.power.impl.nonstand.type.JokerPowerType;
-import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
-import com.github.standobyte.jojo.power.impl.nonstand.NonStandPower;
 import com.github.standobyte.jojo.util.mc.MCUtil;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;

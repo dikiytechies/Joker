@@ -1,7 +1,6 @@
 package com.dikiytechies.joker.action.non_stand;
 
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
-import com.dikiytechies.joker.network.AddonPackets;
 import com.github.standobyte.jojo.action.ActionConditionResult;
 import com.github.standobyte.jojo.action.ActionTarget;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;

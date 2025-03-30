@@ -16,5 +16,11 @@
   },
   "pride_multicast_x4": {
     "sounds": ["joker:pride_multicast_x4"]
+  },
+  "joker_iggy_laugh": {
+    "sounds": ["joker:joker_iggy_laugh"]
+  },
+  "joker_iggy_ringtone": {
+    "sounds": ["joker:joker_iggy_ringtone"]
   }
 }

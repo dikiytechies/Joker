@@ -1,7 +1,6 @@
 package com.dikiytechies.joker;
 
 import com.dikiytechies.joker.capability.CapabilityHandler;
-import com.dikiytechies.joker.init.AddonEntities;
 import com.dikiytechies.joker.init.power.AddonCustomRegistries;
 import com.dikiytechies.joker.network.AddonPackets;
 import net.minecraftforge.eventbus.api.IEventBus;

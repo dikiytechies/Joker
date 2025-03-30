@@ -1,10 +1,8 @@
 package com.dikiytechies.joker.mixin;
 
-import com.dikiytechies.joker.capability.JokerUtilCapProvider;
 import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.potion.GreedStatusEffect;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.FoodStats;
 import net.minecraft.world.Difficulty;

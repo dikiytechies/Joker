@@ -1,23 +1,21 @@
 package com.dikiytechies.joker.entity.mob;
 
+import com.dikiytechies.joker.client.ui.screen.EffectSelectionScreen;
+import com.dikiytechies.joker.init.Sounds;
 import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerSleepStatePacket;
-import com.github.standobyte.jojo.action.ActionConditionResult;
 import com.github.standobyte.jojo.init.ModItems;
-import com.github.standobyte.jojo.item.AjaStoneItem;
+import com.github.standobyte.jojo.potion.StatusEffect;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.AirItem;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.IPacket;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Hand;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.util.*;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
@@ -33,12 +31,49 @@ import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 import javax.annotation.Nullable;
+import java.util.LinkedList;
+import java.util.List;
 
 public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
     private boolean sleepy;
+    private boolean isCasting;
+    private int ticksLeft;
+    private PlayerEntity castTarget;
     private AnimationFactory factory = new AnimationFactory(this);
     public JokerIggyEntity(EntityType<? extends JokerIggyEntity> type, World world) {
         super(type, world);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (ticksLeft > 0) {
+            ticksLeft--;
+            if (this.isCasting && ticksLeft == 30) {
+                level.playSound(null, castTarget.blockPosition(), Sounds.JOKER_IGGY_RINGTONE.get(), SoundCategory.RECORDS, 1.0f, 1.0f);
+            }
+            if (this.isCasting && ticksLeft == 0) {
+                this.isCasting = false;
+                if (!level.isClientSide()) {
+                    List<StatusEffect> effectList = new LinkedList<>();
+                    for (EffectSelectionScreen.EffectTypes effectType : EffectSelectionScreen.EffectTypes.values()) {
+                        if (!castTarget.hasEffect(effectType.effect)) {
+                            effectList.add(effectType.effect);
+                        }
+                    }
+                    if (effectList.size() > 1) {
+                        castTarget.addEffect(new EffectInstance(effectList.get(random.nextInt(effectList.size())), 168000, 0));
+                        level.playSound(null, castTarget.blockPosition(), SoundEvents.PLAYER_LEVELUP, castTarget.getSoundSource(), 1.0f, 1.0f);
+                    } else {
+                        for (EffectSelectionScreen.EffectTypes effectType : EffectSelectionScreen.EffectTypes.values()) {
+                            castTarget.removeEffect(effectType.effect);
+                        }
+                        //todo mask spit
+                    }
+                    this.castTarget = null;
+                }
+            }
+        }
     }
 
     public void setJokerSleepy(boolean sleepy, PlayerEntity player) {
@@ -48,7 +83,13 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
         }
     }
     public boolean isSleepy() { return sleepy; }
-
+    public void setCasting(boolean isCasting, int ticksLeft, PlayerEntity castTarget) {
+        this.isCasting = isCasting;
+        this.ticksLeft = ticksLeft;
+        this.castTarget = castTarget;
+        level.playSound(null, this.blockPosition(), SoundEvents.EVOKER_PREPARE_SUMMON, this.getSoundSource(), 1.0f, 1.0f);
+        level.playSound(null, this.blockPosition(), Sounds.JOKER_IGGY_LAUGH.get(), this.getSoundSource(), 1.0f, 1.0f);
+    }
     @Override
     public boolean removeWhenFarAway(double distanceFromPlayer) {
         return false;
@@ -58,14 +99,16 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
     protected ActionResultType mobInteract(PlayerEntity player, Hand hand) {
         boolean prevSleep = sleepy;
         if (!level.isClientSide()) setJokerSleepy(level.isDay(), player);
-        if (prevSleep == isSleepy() && !isSleepy()) {
+        if (prevSleep == isSleepy() && !isSleepy() && !isCasting) {
             if (player.getItemInHand(Hand.MAIN_HAND).getItem() == ModItems.AJA_STONE.get()) {
                 player.getItemInHand(Hand.MAIN_HAND).shrink(1);
                 player.swing(Hand.MAIN_HAND);
+                setCasting(true, 40, player);
                 return ActionResultType.CONSUME;
             } else if (player.getItemInHand(Hand.MAIN_HAND).getItem() == Items.AIR && player.getItemInHand(Hand.OFF_HAND).getItem() == ModItems.AJA_STONE.get()) {
                 if (!player.abilities.instabuild) player.getItemInHand(Hand.OFF_HAND).shrink(1);
                 player.swing(Hand.OFF_HAND);
+                setCasting(true, 40, player);
                 return ActionResultType.CONSUME;
             }
         }
@@ -73,7 +116,7 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
     }
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-        if (event.isMoving() && !sleepy) {
+        if (event.isMoving() && !sleepy || isCasting) {
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.cast", true));
             return PlayState.CONTINUE;
         }
@@ -95,7 +138,7 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
                 event.getController().getAnimationState().equals(AnimationState.Stopped)) ||
                 event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.cast"))) {
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.idle", true));
-        } else if (!(event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.cast") || event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.idle"))) {
+        } else if (event.getController().getCurrentAnimation() != null && !(event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.cast") || event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.idle"))) {
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.awake"));
         }
     }
