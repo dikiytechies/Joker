@@ -3,11 +3,15 @@ package com.dikiytechies.joker.entity.mob;
 import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerSleepStatePacket;
 import com.github.standobyte.jojo.action.ActionConditionResult;
+import com.github.standobyte.jojo.init.ModItems;
+import com.github.standobyte.jojo.item.AjaStoneItem;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.AirItem;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.IPacket;
 import net.minecraft.util.ActionResult;
@@ -54,12 +58,22 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
     protected ActionResultType mobInteract(PlayerEntity player, Hand hand) {
         boolean prevSleep = sleepy;
         if (!level.isClientSide()) setJokerSleepy(level.isDay(), player);
-        if (!prevSleep || !isSleepy()) return ActionResultType.SUCCESS;
-        return ActionResultType.PASS;
+        if (prevSleep == isSleepy() && !isSleepy()) {
+            if (player.getItemInHand(Hand.MAIN_HAND).getItem() == ModItems.AJA_STONE.get()) {
+                player.getItemInHand(Hand.MAIN_HAND).shrink(1);
+                player.swing(Hand.MAIN_HAND);
+                return ActionResultType.CONSUME;
+            } else if (player.getItemInHand(Hand.MAIN_HAND).getItem() == Items.AIR && player.getItemInHand(Hand.OFF_HAND).getItem() == ModItems.AJA_STONE.get()) {
+                if (!player.abilities.instabuild) player.getItemInHand(Hand.OFF_HAND).shrink(1);
+                player.swing(Hand.OFF_HAND);
+                return ActionResultType.CONSUME;
+            }
+        }
+        return ActionResultType.SUCCESS;
     }
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-        if (event.isMoving()) {
+        if (event.isMoving() && !sleepy) {
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.cast", true));
             return PlayState.CONTINUE;
         }
@@ -79,9 +93,11 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
     private <E extends IAnimatable> void makeJokerAwake(AnimationEvent<E> event) {
         if (event.getController().getCurrentAnimation() != null && ((event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.sleep") &&
                 event.getController().getAnimationState().equals(AnimationState.Stopped)) ||
-                event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.idle"))) {
+                event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.cast"))) {
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.idle", true));
-        } else event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.awake"));
+        } else if (!(event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.cast") || event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.idle"))) {
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.awake"));
+        }
     }
     @Override
     public boolean requiresCustomPersistence() {
