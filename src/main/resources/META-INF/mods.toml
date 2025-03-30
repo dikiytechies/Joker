@@ -62,3 +62,9 @@ Oh hell no mann...
     versionRange="[0.2.2,0.3)"
     ordering="AFTER"
     side="BOTH"
+[[dependencies.joker]]
+    modId = "geckolib3"
+    mandatory = true
+    versionRange = "[3.0, 3.0.64]"
+    ordering = "AFTER"
+    side = "CLIENT"

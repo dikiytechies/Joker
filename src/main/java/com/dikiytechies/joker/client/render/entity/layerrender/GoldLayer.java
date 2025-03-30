@@ -33,6 +33,7 @@ public class GoldLayer<T extends LivingEntity, M extends EntityModel<T>> extends
         super(renderer);
         this.armorModel = new GreedArmorModel<>(0.0F, slim);
     }
+    //todo gold texture for everyone
     @Override
     public void render(MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ticks, float yRot, float xRot){
         if (entity.hasEffect(AddonStatusEffects.GREED.get())) {

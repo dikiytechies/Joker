@@ -2,9 +2,13 @@ package com.dikiytechies.joker.client;
 
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.client.render.entity.layerrender.GoldLayer;
+import com.dikiytechies.joker.client.render.entity.renderer.JokerIggyRenderer;
+import com.dikiytechies.joker.entity.mob.JokerIggyEntity;
+import com.dikiytechies.joker.init.AddonEntities;
 import com.github.standobyte.jojo.client.render.entity.layerrenderer.HamonBurnLayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.LivingRenderer;
 import net.minecraft.client.renderer.entity.PlayerRenderer;
 import net.minecraft.client.renderer.entity.model.BipedModel;
@@ -13,6 +17,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +30,7 @@ public class ClientInit {
     public static void onFMLClientSetup(FMLClientSetupEvent event) {
         Minecraft mc = event.getMinecraftSupplier().get();
 
+        RenderingRegistry.registerEntityRenderingHandler(AddonEntities.JOKER_IGGY.get(), JokerIggyRenderer::new);
 
         event.enqueueWork(() -> {
             Map<String, PlayerRenderer> skinMap = mc.getEntityRenderDispatcher().getSkinMap();

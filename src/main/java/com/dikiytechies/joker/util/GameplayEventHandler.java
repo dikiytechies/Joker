@@ -320,6 +320,7 @@ public class GameplayEventHandler {
             }
         }
     }
+    //todo greed additional damage
     private static void consumeGreedHealth(LivingDamageEvent event) {
         LivingEntity entity = event.getEntityLiving();
         if (!entity.level.isClientSide() && !event.isCanceled()) {

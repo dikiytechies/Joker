@@ -127,6 +127,10 @@ repositories {
         name "RotP Maven"
         url 'https://raw.githubusercontent.com/StandoByte/RotP-maven/main'
     }
+    maven {
+        name = 'GeckoLib'
+        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+    }
 }
 
 dependencies {
@@ -156,6 +160,8 @@ dependencies {
 	implementation fg.deobf("standobyte.jojo:JJBA-RipplesOfThePast:${main_mod_version}")
 	compileOnly 'team.unnamed:mocha:3.0.0'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-1.16.5:3.0.64")
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

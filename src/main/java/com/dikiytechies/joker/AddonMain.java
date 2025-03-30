@@ -1,6 +1,7 @@
 package com.dikiytechies.joker;
 
 import com.dikiytechies.joker.capability.CapabilityHandler;
+import com.dikiytechies.joker.init.AddonEntities;
 import com.dikiytechies.joker.init.power.AddonCustomRegistries;
 import com.dikiytechies.joker.network.AddonPackets;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -9,6 +10,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import software.bernie.geckolib3.GeckoLib;
 
 // Your addon's main file
 
@@ -21,6 +23,7 @@ public class AddonMain {
 
     public AddonMain() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        GeckoLib.initialize();
 
         AddonCustomRegistries.initCustomRegistries(modEventBus);
         AddonCustomRegistries.initVanillaRegistries(modEventBus);
