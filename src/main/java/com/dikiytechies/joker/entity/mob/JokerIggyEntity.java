@@ -6,6 +6,7 @@ import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerSleepStatePacket;
 import com.github.standobyte.jojo.init.ModItems;
 import com.github.standobyte.jojo.potion.StatusEffect;
+import com.github.standobyte.jojo.util.mc.MCUtil;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -14,12 +15,14 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.*;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.network.NetworkHooks;
 import software.bernie.geckolib3.core.AnimationState;
 import software.bernie.geckolib3.core.IAnimatable;
@@ -34,11 +37,14 @@ import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.List;
 
-public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
+public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEntityAdditionalSpawnData {
     private boolean sleepy;
     private boolean isCasting;
     private int ticksLeft;
     private PlayerEntity castTarget;
+    private boolean isSmoking;
+    private boolean isCoughing;
+
     private AnimationFactory factory = new AnimationFactory(this);
     public JokerIggyEntity(EntityType<? extends JokerIggyEntity> type, World world) {
         super(type, world);
@@ -116,16 +122,23 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
     }
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-        if (event.isMoving() && !sleepy || isCasting) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.cast", true));
+        try {
+            if (event.isMoving() && !sleepy || isCasting) {
+                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.cast", true));
+                return PlayState.CONTINUE;
+            }
+
+            if (sleepy) {
+                animate(event, "animation.joker_iggy.sleep", "animation.joker_iggy.sleep_idle", "animation.joker_iggy.sleep_idle");
+            } else
+                animate(event, "animation.joker_iggy.awake", "animation.joker_iggy.idle", "animation.joker_iggy.cast");
+            return PlayState.CONTINUE;
+        } catch (NullPointerException e) {
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.idle", true));
             return PlayState.CONTINUE;
         }
-        //event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.idle"));
-        if (sleepy) {
-            makeJokerSleep(event);
-        } else makeJokerAwake(event);
-        return PlayState.CONTINUE;
     }
+    @Deprecated
     private <E extends IAnimatable> void makeJokerSleep(AnimationEvent<E> event) {
         if (event.getController().getCurrentAnimation() != null && ((event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.sleep") &&
                 event.getController().getAnimationState().equals(AnimationState.Stopped)) ||
@@ -133,6 +146,7 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.sleep_idle", true));
         } else event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.sleep"));
     }
+    @Deprecated
     private <E extends IAnimatable> void makeJokerAwake(AnimationEvent<E> event) {
         if (event.getController().getCurrentAnimation() != null && ((event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.sleep") &&
                 event.getController().getAnimationState().equals(AnimationState.Stopped)) ||
@@ -141,6 +155,18 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
         } else if (event.getController().getCurrentAnimation() != null && !(event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.cast") || event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.idle"))) {
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.awake"));
         }
+    }
+    private <E extends IAnimatable> boolean animate(AnimationEvent<E> event, String animation, String idle, String to) {
+        if (event.getController().getCurrentAnimation() != null && ((event.getController().getCurrentAnimation().animationName.equals(animation) &&
+                event.getController().getAnimationState().equals(AnimationState.Stopped)) ||
+                event.getController().getCurrentAnimation().animationName.equals(to))) {
+            event.getController().setAnimation(new AnimationBuilder().addAnimation(idle, true));
+            return true;
+        } else if (event.getController().getCurrentAnimation() != null && !(event.getController().getCurrentAnimation().animationName.equals(to) || event.getController().getCurrentAnimation().animationName.equals(idle))) {
+            event.getController().setAnimation(new AnimationBuilder().addAnimation(animation));
+            return true;
+        }
+        return false;
     }
     @Override
     public boolean requiresCustomPersistence() {
@@ -164,6 +190,32 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable {
     public boolean isInvulnerableTo(DamageSource damageSource) {
         if (damageSource != DamageSource.OUT_OF_WORLD) return true;
         return super.isInvulnerableTo(damageSource);
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundNBT nbt) {
+        super.addAdditionalSaveData(nbt);
+        //nbt.put("HamonPower", hamonPower.writeNBT());
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundNBT nbt) {
+        super.readAdditionalSaveData(nbt);
+        /*if (nbt.contains("HamonPower", MCUtil.getNbtId(CompoundNBT.class))) {
+            hamonPower.readNBT(nbt.getCompound("HamonPower"));
+        }
+        reAddBaseHamon = true;*/
+    }
+
+    @Deprecated
+    @Override
+    public void writeSpawnData(PacketBuffer buffer) {
+
+    }
+
+    @Override
+    public void readSpawnData(PacketBuffer additionalData) {
+
     }
 
     @Deprecated
