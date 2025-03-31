@@ -1,9 +1,11 @@
 package com.dikiytechies.joker.client;
 
 import com.dikiytechies.joker.AddonMain;
+import com.dikiytechies.joker.client.render.armor.MaskArmorRenderer;
 import com.dikiytechies.joker.client.render.entity.layerrender.GoldLayer;
 import com.dikiytechies.joker.client.render.entity.renderer.JokerIggyRenderer;
 import com.dikiytechies.joker.init.AddonEntities;
+import com.dikiytechies.joker.item.MaskItem;
 import com.github.standobyte.jojo.client.render.entity.layerrenderer.HamonBurnLayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -19,6 +21,7 @@ import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.jetbrains.annotations.NotNull;
+import software.bernie.geckolib3.renderers.geo.GeoArmorRenderer;
 
 import java.util.Map;
 
@@ -29,6 +32,7 @@ public class ClientInit {
         Minecraft mc = event.getMinecraftSupplier().get();
 
         RenderingRegistry.registerEntityRenderingHandler(AddonEntities.JOKER_IGGY.get(), JokerIggyRenderer::new);
+        GeoArmorRenderer.registerArmorRenderer(MaskItem.class, new MaskArmorRenderer());
 
         event.enqueueWork(() -> {
             Map<String, PlayerRenderer> skinMap = mc.getEntityRenderDispatcher().getSkinMap();
