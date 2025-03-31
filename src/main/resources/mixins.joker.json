@@ -16,6 +16,7 @@
     "JokerOverridesZombieMixin",
     "JokerVampirismCureSkipMixin",
     "MakeJokerUndeadMixin",
+    "MainHamonSkillsManagerAccessor",
     "PBDInstanceMixin",
     "PillarmanActionMixin",
     "PillarmanBladeDashAttackMixin",
