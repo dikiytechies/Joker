@@ -32,7 +32,7 @@ public class JokerShrinePieces {
             this.templatePosition = blockPos;
             this.setupPiece(templateManager);
         }
-
+        //todo fix structure no id exception
         public Piece(TemplateManager templateManager, CompoundNBT cnbt) {
             super(SHRINE_PIECES, cnbt);
             this.piece = new ResourceLocation(cnbt.getString("Template"));

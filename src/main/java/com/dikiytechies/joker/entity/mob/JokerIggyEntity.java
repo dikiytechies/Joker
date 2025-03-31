@@ -3,10 +3,9 @@ package com.dikiytechies.joker.entity.mob;
 import com.dikiytechies.joker.client.ui.screen.EffectSelectionScreen;
 import com.dikiytechies.joker.init.Sounds;
 import com.dikiytechies.joker.network.AddonPackets;
-import com.dikiytechies.joker.network.packets.fromserver.TrJokerSleepStatePacket;
+import com.dikiytechies.joker.network.packets.fromserver.TrJokerStatePacket;
 import com.github.standobyte.jojo.init.ModItems;
 import com.github.standobyte.jojo.potion.StatusEffect;
-import com.github.standobyte.jojo.util.mc.MCUtil;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -55,37 +54,56 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
         super.tick();
         if (ticksLeft > 0) {
             ticksLeft--;
-            if (this.isCasting && ticksLeft == 30) {
-                level.playSound(null, castTarget.blockPosition(), Sounds.JOKER_IGGY_RINGTONE.get(), SoundCategory.RECORDS, 1.0f, 1.0f);
-            }
-            if (this.isCasting && ticksLeft == 0) {
-                this.isCasting = false;
-                if (!level.isClientSide()) {
-                    List<StatusEffect> effectList = new LinkedList<>();
-                    for (EffectSelectionScreen.EffectTypes effectType : EffectSelectionScreen.EffectTypes.values()) {
-                        if (!castTarget.hasEffect(effectType.effect)) {
-                            effectList.add(effectType.effect);
-                        }
-                    }
-                    if (effectList.size() > 1) {
-                        castTarget.addEffect(new EffectInstance(effectList.get(random.nextInt(effectList.size())), 168000, 0));
-                        level.playSound(null, castTarget.blockPosition(), SoundEvents.PLAYER_LEVELUP, castTarget.getSoundSource(), 1.0f, 1.0f);
-                    } else {
-                        for (EffectSelectionScreen.EffectTypes effectType : EffectSelectionScreen.EffectTypes.values()) {
-                            castTarget.removeEffect(effectType.effect);
-                        }
-                        //todo mask spit
-                    }
-                    this.castTarget = null;
+            tickCasting();
+            tickSmoking();
+            tickCoughing();
+        }
+    }
+
+    private void tickCasting() {
+        if (this.isCasting && ticksLeft == 30) {
+            level.playSound(null, castTarget.blockPosition(), Sounds.JOKER_IGGY_RINGTONE.get(), SoundCategory.RECORDS, 1.0f, 1.0f);
+        }
+        if (this.isCasting && ticksLeft == 0) {
+            this.isCasting = false;
+            List<StatusEffect> effectList = new LinkedList<>();
+            for (EffectSelectionScreen.EffectTypes effectType : EffectSelectionScreen.EffectTypes.values()) {
+                if (!castTarget.hasEffect(effectType.effect)) {
+                    effectList.add(effectType.effect);
                 }
             }
+            if (effectList.size() > 1) {
+                if (!level.isClientSide()) {
+                    castTarget.addEffect(new EffectInstance(effectList.get(random.nextInt(effectList.size())), 168000, 0));
+                    level.playSound(null, castTarget.blockPosition(), SoundEvents.PLAYER_LEVELUP, castTarget.getSoundSource(), 1.0f, 1.0f);
+                    if (random.nextInt() < 10) {
+                        setJokerSmoking(true, castTarget, 150);
+                    }
+                }
+            } else {
+                for (EffectSelectionScreen.EffectTypes effectType : EffectSelectionScreen.EffectTypes.values()) {
+                    if (!level.isClientSide()) castTarget.removeEffect(effectType.effect);
+                }
+                setCoughing(true, 25);
+            }
+            this.castTarget = null;
+        }
+    }
+    private void tickSmoking() {
+        if (this.isSmoking && ticksLeft == 0) {
+            isSmoking = false;
+        }
+    }
+    private void tickCoughing() {
+        if (this.isCoughing && ticksLeft == 0) {
+            isCoughing = false;
         }
     }
 
     public void setJokerSleepy(boolean sleepy, PlayerEntity player) {
         this.sleepy = sleepy;
         if (player instanceof ServerPlayerEntity) {
-            AddonPackets.sendToClient(new TrJokerSleepStatePacket(this.getId(), sleepy, player.getId()), (ServerPlayerEntity) player);
+            AddonPackets.sendToClient(new TrJokerStatePacket(this.getId(), sleepy, player.getId(), TrJokerStatePacket.JokerDataType.SLEEPY), (ServerPlayerEntity) player);
         }
     }
     public boolean isSleepy() { return sleepy; }
@@ -96,16 +114,29 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
         level.playSound(null, this.blockPosition(), SoundEvents.EVOKER_PREPARE_SUMMON, this.getSoundSource(), 1.0f, 1.0f);
         level.playSound(null, this.blockPosition(), Sounds.JOKER_IGGY_LAUGH.get(), this.getSoundSource(), 1.0f, 1.0f);
     }
+    public void setJokerSmoking(boolean isSmoking, PlayerEntity player, int ticksLeft) {
+        this.isSmoking = isSmoking;
+        this.ticksLeft = ticksLeft;
+        if (player instanceof ServerPlayerEntity) {
+            AddonPackets.sendToClient(new TrJokerStatePacket(this.getId(), isSmoking, player.getId(), TrJokerStatePacket.JokerDataType.SMOKING, ticksLeft), (ServerPlayerEntity) player);
+        }
+    }
+    public boolean isSmoking() { return isSmoking; }
+    public void setCoughing(boolean isCoughing, int ticksLeft) {
+        this.isCoughing = isCoughing;
+        this.ticksLeft = ticksLeft;
+        level.playSound(null, this.blockPosition(), SoundEvents.COW_AMBIENT, this.getSoundSource(), 1.0f, 1.0f);
+    }
     @Override
     public boolean removeWhenFarAway(double distanceFromPlayer) {
         return false;
     }
-
+    // todo fix shadow consume
     @Override
     protected ActionResultType mobInteract(PlayerEntity player, Hand hand) {
         boolean prevSleep = sleepy;
-        if (!level.isClientSide()) setJokerSleepy(level.isDay(), player);
-        if (prevSleep == isSleepy() && !isSleepy() && !isCasting) {
+        if (!level.isClientSide() && level.isDay() != sleepy) setJokerSleepy(level.isDay(), player);
+        if (prevSleep == isSleepy() && !isSleepy() && !isCasting && !isSmoking) {
             if (player.getItemInHand(Hand.MAIN_HAND).getItem() == ModItems.AJA_STONE.get()) {
                 player.getItemInHand(Hand.MAIN_HAND).shrink(1);
                 player.swing(Hand.MAIN_HAND);
@@ -123,15 +154,24 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
         try {
+            if (isSmoking) {
+                animate(event, "animation.joker_iggy.smoking", "animation.joker_iggy.smoking_idle", "animation.joker_iggy.cast");
+                return PlayState.CONTINUE;
+            }
+            if (isCoughing) {
+                animate(event, "animation.joker_iggy.cough", "animation.joker_iggy.cough", "animation.joker_iggy.cast");
+                return PlayState.CONTINUE;
+            }
             if (event.isMoving() && !sleepy || isCasting) {
                 event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.cast", true));
                 return PlayState.CONTINUE;
             }
-
             if (sleepy) {
                 animate(event, "animation.joker_iggy.sleep", "animation.joker_iggy.sleep_idle", "animation.joker_iggy.sleep_idle");
-            } else
+            } else if (event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.sleep_idle") ||
+                    event.getController().getCurrentAnimation().animationName.equals("animation.joker_iggy.awake")) {
                 animate(event, "animation.joker_iggy.awake", "animation.joker_iggy.idle", "animation.joker_iggy.cast");
+            } else event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.idle", true));
             return PlayState.CONTINUE;
         } catch (NullPointerException e) {
             event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.joker_iggy.idle", true));
@@ -195,16 +235,22 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
     @Override
     public void addAdditionalSaveData(CompoundNBT nbt) {
         super.addAdditionalSaveData(nbt);
-        //nbt.put("HamonPower", hamonPower.writeNBT());
+        CompoundNBT jokerData = new CompoundNBT();
+        jokerData.putBoolean("IsSleepy", sleepy);
+        jokerData.putInt("TicksLeft", ticksLeft);
+        jokerData.putBoolean("IsCoughing", isCoughing);
+        jokerData.putBoolean("IsSmoking", isSmoking);
+        nbt.put("JokerIggyData", jokerData);
     }
 
     @Override
     public void readAdditionalSaveData(CompoundNBT nbt) {
         super.readAdditionalSaveData(nbt);
-        /*if (nbt.contains("HamonPower", MCUtil.getNbtId(CompoundNBT.class))) {
-            hamonPower.readNBT(nbt.getCompound("HamonPower"));
-        }
-        reAddBaseHamon = true;*/
+        CompoundNBT jokerData = nbt.getCompound("JokerIggyData");
+        sleepy = jokerData.getBoolean("IsSleepy");
+        ticksLeft = jokerData.getInt("TicksLeft");
+        isCoughing = jokerData.getBoolean("IsCoughing");
+        isSmoking = jokerData.getBoolean("IsSmoking");
     }
 
     @Deprecated

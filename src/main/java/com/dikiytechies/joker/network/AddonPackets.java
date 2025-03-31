@@ -40,7 +40,7 @@ public class AddonPackets {
         registerMessage(channel, new TrPrideMultiCastPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrFavoriteEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new TrActiveEffectPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        registerMessage(channel, new TrJokerSleepStatePacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        registerMessage(channel, new TrJokerStatePacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new CommonConfigPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         registerMessage(channel, new ResetSyncedCommonConfigPacket.Handler(), Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
