@@ -3,10 +3,12 @@ package com.dikiytechies.joker.entity.mob;
 import com.dikiytechies.joker.client.ui.screen.EffectSelectionScreen;
 import com.dikiytechies.joker.init.AddonItems;
 import com.dikiytechies.joker.init.Sounds;
+import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerStatePacket;
 import com.github.standobyte.jojo.init.ModItems;
 import com.github.standobyte.jojo.potion.StatusEffect;
+import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
@@ -42,6 +44,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEntityAdditionalSpawnData {
+    public int animatedTicks;
     private boolean sleepy;
     private boolean isCasting;
     private int ticksLeft;
@@ -63,6 +66,12 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
             tickSmoking();
             tickCoughing();
         }
+        if (level.isClientSide()) {
+            animatedTicks++;
+            if (animatedTicks % 40 == 0) {
+                animatedTicks = 0;
+            }
+        }
     }
 
     private void tickCasting() {
@@ -82,7 +91,9 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
                     castTarget.addEffect(new EffectInstance(effectList.get(random.nextInt(effectList.size())), 168000, 0));
                     level.playSound(null, castTarget.blockPosition(), SoundEvents.PLAYER_LEVELUP, castTarget.getSoundSource(), 1.0f, 1.0f);
                     if (random.nextInt() < 10) {
-                        setJokerSmoking(true, castTarget, 150);
+                        level.getServer().getPlayerList().getPlayers().forEach(sp -> {
+                            setJokerSmoking(true, sp, 150);
+                        });
                     }
                 }
             } else {
@@ -149,8 +160,12 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
     protected ActionResultType mobInteract(PlayerEntity player, Hand hand) {
         lookAt(player, player.getRotationVector().x, player.getRotationVector().y);
         boolean prevSleep = sleepy;
-        if (!level.isClientSide() && level.isDay() != sleepy) setJokerSleepy(level.isDay(), player);
-        if (prevSleep == isSleepy() && !isSleepy() && !isCasting && !isSmoking) {
+        if (!level.isClientSide() && level.isDay() != sleepy) {
+            level.getServer().getPlayerList().getPlayers().forEach(sp -> {
+                setJokerSleepy(level.isDay(), sp);
+            });
+        }
+        if (prevSleep == isSleepy() && !isSleepy() && !isCasting && !isSmoking && INonStandPower.getNonStandPowerOptional(player).map(p -> p.getType() != JokerPowerInit.JOKER.get()).orElse(false)) {
             if (player.getItemInHand(Hand.MAIN_HAND).getItem() == ModItems.AJA_STONE.get()) {
                 player.getItemInHand(Hand.MAIN_HAND).shrink(1);
                 player.swing(Hand.MAIN_HAND);

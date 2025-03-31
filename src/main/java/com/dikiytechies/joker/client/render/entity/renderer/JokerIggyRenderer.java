@@ -18,10 +18,11 @@ public class JokerIggyRenderer extends GeoEntityRenderer<JokerIggyEntity> {
         this.shadowRadius = 0.3f;
     }
 
-//    @Override
-//    public ResourceLocation getTextureLocation(JokerIggyEntity instance) {
-//        return new ResourceLocation(AddonMain.MOD_ID, "textures/entity/joker_iggy_texture.png");
-//    }
+    @Override
+    public ResourceLocation getTextureLocation(JokerIggyEntity instance) {
+        int frameId = instance.animatedTicks >= 20? 1: 0;
+        return new ResourceLocation(AddonMain.MOD_ID, "textures/entity/animated/joker_iggy_texture_" + frameId + ".png");
+    }
 
     @Override
     public RenderType getRenderType(JokerIggyEntity animatable, float partialTicks, MatrixStack stack, @Nullable IRenderTypeBuffer renderTypeBuffer, @Nullable IVertexBuilder vertexBuilder, int packedLightIn, ResourceLocation textureLocation) {

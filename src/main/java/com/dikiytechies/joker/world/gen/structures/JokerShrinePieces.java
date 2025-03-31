@@ -1,6 +1,8 @@
 package com.dikiytechies.joker.world.gen.structures;
 
 import com.dikiytechies.joker.AddonMain;
+import com.github.standobyte.jojo.JojoMod;
+import com.github.standobyte.jojo.world.gen.structures.HamonTemplePieces;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.ResourceLocation;
@@ -18,7 +20,7 @@ import java.util.List;
 import java.util.Random;
 
 public class JokerShrinePieces {
-    private static IStructurePieceType SHRINE_PIECES;
+    private static IStructurePieceType SHRINE_PIECE = IStructurePieceType.setPieceId(JokerShrinePieces.Piece::new, AddonMain.MOD_ID + ":Shrine");;
     private static final ResourceLocation SHRINE = new ResourceLocation(AddonMain.MOD_ID, "shrine");
     public static void start(TemplateManager templateManager, BlockPos pos, List<StructurePiece> pieceList, Random random) {
         pieceList.add(new JokerShrinePieces.Piece(templateManager, SHRINE, pos));
@@ -27,14 +29,13 @@ public class JokerShrinePieces {
         private final ResourceLocation piece;
 
         public Piece(TemplateManager templateManager, ResourceLocation piece, BlockPos blockPos) {
-            super(SHRINE_PIECES, 0);
+            super(SHRINE_PIECE, 0);
             this.piece = piece;
             this.templatePosition = blockPos;
             this.setupPiece(templateManager);
         }
-        //todo fix structure no id exception
         public Piece(TemplateManager templateManager, CompoundNBT cnbt) {
-            super(SHRINE_PIECES, cnbt);
+            super(SHRINE_PIECE, cnbt);
             this.piece = new ResourceLocation(cnbt.getString("Template"));
             this.setupPiece(templateManager);
         }

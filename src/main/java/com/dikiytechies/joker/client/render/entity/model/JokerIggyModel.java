@@ -13,7 +13,7 @@ public class JokerIggyModel extends AnimatedGeoModel<JokerIggyEntity> {
 
     @Override
     public ResourceLocation getTextureLocation(JokerIggyEntity object) {
-        return new ResourceLocation(AddonMain.MOD_ID, "textures/entity/joker_iggy_texture.png");
+        return new ResourceLocation(AddonMain.MOD_ID, "textures/entity/animated/joker_iggy_texture_");
     }
 
     @Override
