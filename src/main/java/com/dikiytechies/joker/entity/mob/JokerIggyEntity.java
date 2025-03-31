@@ -1,22 +1,27 @@
 package com.dikiytechies.joker.entity.mob;
 
 import com.dikiytechies.joker.client.ui.screen.EffectSelectionScreen;
+import com.dikiytechies.joker.init.AddonItems;
 import com.dikiytechies.joker.init.Sounds;
 import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.TrJokerStatePacket;
 import com.github.standobyte.jojo.init.ModItems;
 import com.github.standobyte.jojo.potion.StatusEffect;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.IPacket;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.*;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
@@ -97,6 +102,14 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
     private void tickCoughing() {
         if (this.isCoughing && ticksLeft == 0) {
             isCoughing = false;
+            ItemStack maskStack = new ItemStack(AddonItems.MASK.get());
+            maskStack.enchant(Enchantments.BINDING_CURSE, 1);
+            ItemEntity mask = new ItemEntity(level, this.getX(), this.getY(), this.getZ(), maskStack);
+            float f = -MathHelper.sin(this.getRotationVector().y * ((float)Math.PI / 180F)) * MathHelper.cos(this.getRotationVector().x * ((float)Math.PI / 180F));
+            float f1 = -MathHelper.sin((this.getRotationVector().x + 0) * ((float)Math.PI / 180F));
+            float f2 = MathHelper.cos(this.getRotationVector().y * ((float)Math.PI / 180F)) * MathHelper.cos(this.getRotationVector().x * ((float)Math.PI / 180F));
+            mask.setDeltaMovement(f, f1, f2);
+            level.addFreshEntity(mask);
         }
     }
 
@@ -134,6 +147,7 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
     // todo fix shadow consume
     @Override
     protected ActionResultType mobInteract(PlayerEntity player, Hand hand) {
+        lookAt(player, player.getRotationVector().x, player.getRotationVector().y);
         boolean prevSleep = sleepy;
         if (!level.isClientSide() && level.isDay() != sleepy) setJokerSleepy(level.isDay(), player);
         if (prevSleep == isSleepy() && !isSleepy() && !isCasting && !isSmoking) {

@@ -79,6 +79,7 @@ public class AddonConfig {
 
     public static class Common {
         public final ForgeConfigSpec.BooleanValue enableShrineGeneration;
+        public final ForgeConfigSpec.BooleanValue enableMaskBinding;
         private boolean loaded = false;
 
         private Common(ForgeConfigSpec.Builder builder) {
@@ -97,6 +98,11 @@ public class AddonConfig {
                             "    Default is to true.")
                     .define("enableShrineGeneration", true);
             builder.pop();
+            enableMaskBinding = builder
+                    .translation("joker.config.enableMaskBinding")
+                    .comment("    Enables mask acting similar to curse of the binding feature",
+                            "    Default is to true.")
+                    .define("enableMaskBinding", true);
 
             if (mainPath != null) {
                 builder.pop();
@@ -113,17 +119,21 @@ public class AddonConfig {
 
         public static class SyncedValues {
             private final boolean enableShrineGeneration;
+            private final boolean enableMaskBinding;
 
             public SyncedValues(PacketBuffer buf) {
                 enableShrineGeneration = buf.readBoolean();
+                enableMaskBinding = buf.readBoolean();
             }
 
             private SyncedValues(Common config) {
                 enableShrineGeneration = config.enableShrineGeneration.get();
+                enableMaskBinding = config.enableMaskBinding.get();
             }
 
             public static void resetConfig() {
                 COMMON_SYNCED_TO_CLIENT.enableShrineGeneration.clearCache();
+                COMMON_SYNCED_TO_CLIENT.enableMaskBinding.clearCache();
             }
 
             public static void syncWithClient(ServerPlayerEntity player) {
@@ -136,10 +146,12 @@ public class AddonConfig {
 
             public void writeToBuf(PacketBuffer buf) {
                 buf.writeBoolean(enableShrineGeneration);
+                buf.writeBoolean(enableMaskBinding);
             }
 
             public void changeConfigValues() {
                 COMMON_SYNCED_TO_CLIENT.enableShrineGeneration.set(enableShrineGeneration);
+                COMMON_SYNCED_TO_CLIENT.enableMaskBinding.set(enableMaskBinding);
             }
         }
     }

@@ -207,7 +207,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
     public int getPassiveEffectLevel(Effect effect, INonStandPower power) {
         LivingEntity entity = power.getUser();
         JokerData jokerData = power.getTypeSpecificData(this).get();
-        if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).isPresent() && entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(cap -> effect == cap.getActiveEffect().effect).orElse(false)) {
+        if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).isPresent() && entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(cap -> cap.getActiveEffect() != null && cap.getActiveEffect().effect.equals(effect)).orElse(false)) {
             return Math.max(-1, jokerData.getStage() - 2);
         }
 
@@ -254,7 +254,7 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
 
     @Override
     public boolean isReplaceableWith(NonStandPowerType<?> newType) {
-        return false;
+        return true;
     }
 
     @Override

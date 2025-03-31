@@ -38,11 +38,14 @@ public class JokerData extends TypeSpecificData {
     private int lastEnergyLevel = Integer.MIN_VALUE;
     private boolean pillarmanStoneFormEnabled;
     private boolean pillarmanBladesVisible;
+    private float prevEnergy;
 
     @Override
     public void onPowerGiven(@Nullable NonStandPowerType<?> oldType, @Nullable TypeSpecificData oldData) {
         this.previousPowerType = oldType;
         this.oldData = oldData;
+        this.prevEnergy = power.getEnergy();
+        if (oldType != null) power.setEnergy(power.getEnergy());
         super.onPowerGiven(oldType, oldData);
         if (oldType == ModPowers.PILLAR_MAN.get()) updatePillarmanBuffs(power.getUser());
     }
@@ -128,7 +131,11 @@ public class JokerData extends TypeSpecificData {
     public void setPreviousData(TypeSpecificData data) { this.oldData = data; }
     public TypeSpecificData getPreviousData() { return this.oldData; }
     public CompoundNBT getPreviousDataNbt() {
-        if (this.oldData != null) return this.oldData.writeNBT();
+        if (this.oldData != null) {
+            CompoundNBT nbt = oldData.writeNBT();
+            nbt.putFloat("Energy", prevEnergy);
+            return nbt;
+        }
         return null;
     }
     public void setStage(int stage) {
@@ -158,7 +165,7 @@ public class JokerData extends TypeSpecificData {
         nbt.putInt("Stage", stage);
         if (previousPowerType != null) nbt.putString("PreviousPowerType", JojoCustomRegistries.NON_STAND_POWERS.getKeyAsString(previousPowerType));
         if (oldData != null) {
-            nbt.put("PreviousData", (oldData).writeNBT());
+            nbt.put("PreviousData", getPreviousDataNbt());
         }
         if (previousPowerType == ModPowers.PILLAR_MAN.get()) nbt.putBoolean("PillarmanStoneForm", pillarmanStoneFormEnabled);
         return nbt;
@@ -175,6 +182,7 @@ public class JokerData extends TypeSpecificData {
                 CompoundNBT oldDataNBT = nbt.getCompound("PreviousData");
                 oldData = previousPowerType.newSpecificDataInstance();
                 oldData.readNBT(oldDataNBT);
+                prevEnergy = oldDataNBT.getFloat("Energy");
             }
             if (previousPowerType == ModPowers.PILLAR_MAN.get()) pillarmanStoneFormEnabled = nbt.getBoolean("PillarmanStoneFrom");
         }

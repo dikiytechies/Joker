@@ -22,12 +22,15 @@
     "PillarmanBladesBarrageMixin",
     "PillarmanBladeSlashMixin",
     "PillarmanBladesLayerMixin",
+    "PillarmanDataMixin",
     "PillarmanLayerMixin",
     "PillarmanLightFlashMixin",
     "PillarmanPowerTypeFixerMixin",
     "PillarmanStoneFormMixin",
     "PlayerEntityMixin",
+    "VampirismDataMixin",
     "VampirismUtilMixin",
+    "ZombieDataMixin",
     "ZombieDevourMixin"
   ],
   "client": [

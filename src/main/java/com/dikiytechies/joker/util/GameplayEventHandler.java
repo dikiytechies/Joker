@@ -1,8 +1,10 @@
 package com.dikiytechies.joker.util;
 
+import com.dikiytechies.joker.AddonConfig;
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.capability.JokerUtilCap;
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
+import com.dikiytechies.joker.init.AddonItems;
 import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.init.Sounds;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
@@ -333,8 +335,12 @@ public class GameplayEventHandler {
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onEquipmentChanged(LivingEquipmentChangeEvent event) {
+        applyMask(event);
+        greedArmorChanged(event);
+    }
+    private static void greedArmorChanged(LivingEquipmentChangeEvent event) {
         LivingEntity entity = event.getEntityLiving();
-        if (!entity.level.isClientSide() && entity.hasEffect(AddonStatusEffects.GREED.get())) {
+        if (entity.hasEffect(AddonStatusEffects.GREED.get()) && !event.isCanceled()) {
             if (Arrays.stream(EquipmentSlotType.values()).anyMatch(equipmentSlotType -> equipmentSlotType.getType() == event.getSlot().getType())) {
                 AtomicReference<Double> armorCounter = new AtomicReference<>(0.0);
                 event.getFrom().getAttributeModifiers(event.getSlot()).get(Attributes.ARMOR).forEach(armor -> armorCounter.updateAndGet(v -> v + armor.getAmount()));
@@ -344,6 +350,24 @@ public class GameplayEventHandler {
                     MCUtil.applyAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", -additionalHealth, AttributeModifier.Operation.ADDITION));
                 } else MCUtil.applyAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", GreedStatusEffect.getMaxArmorWithoutGreed(entity) - additionalHealth, AttributeModifier.Operation.ADDITION));
                 entity.setHealth(entity.getMaxHealth());
+            }
+        }
+    }
+    private static void applyMask(LivingEquipmentChangeEvent event) {
+        LivingEntity entity = event.getEntityLiving();
+        if (event.getSlot() == EquipmentSlotType.HEAD) {
+            if (event.getTo().getItem() == AddonItems.MASK.get()) {
+                if (INonStandPower.getNonStandPowerOptional(entity).map(power -> power.getType() != JokerPowerInit.JOKER.get()).orElse(false)) {
+                    INonStandPower.getNonStandPowerOptional(entity).ifPresent(power -> power.givePower(JokerPowerInit.JOKER.get()));
+                }
+            } else if (event.getFrom().getItem() == AddonItems.MASK.get()) {
+                if (INonStandPower.getNonStandPowerOptional(entity).map(power -> power.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
+                    INonStandPower.getNonStandPowerOptional(entity).ifPresent(power -> power.getTypeSpecificData(JokerPowerInit.JOKER.get()).ifPresent(data -> {
+                        if (data.getPreviousPowerType() != null) {
+                            power.givePower(data.getPreviousPowerType());
+                        } else power.clear();
+                    }));
+                }
             }
         }
     }

@@ -1,8 +1,11 @@
 package com.dikiytechies.joker.mixin;
 
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
+import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
 import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
+import com.github.standobyte.jojo.init.power.non_stand.hamon.ModHamonSkills;
 import com.github.standobyte.jojo.power.impl.nonstand.TypeSpecificData;
+import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
 import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.HamonData;
 import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.MainHamonSkillsManager;
 import net.minecraft.nbt.CompoundNBT;
@@ -31,6 +34,18 @@ public abstract class HamonDataMixin extends TypeSpecificData {
     @Shadow private float breathingTrainingLevel;
     @Shadow private void recalcHamonDamage() {};
     @Shadow private MainHamonSkillsManager hamonSkills;
+
+    @Inject(method = "onPowerGiven", at = @At("HEAD"), cancellable = true, remap = false)
+    public void restoreData(NonStandPowerType<?> oldType, TypeSpecificData oldData, CallbackInfo ci) {
+        if (oldType == JokerPowerInit.JOKER.get()) {
+            JokerData data = (JokerData) oldData;
+            this.readNBT(((JokerData) oldData).getPreviousDataNbt());
+            if (!power.getUser().level.isClientSide()) {
+                power.setEnergy(data.getPreviousDataNbt().getFloat("Energy"));
+            }
+            ci.cancel();
+        }
+    }
 
     @Inject(method = "readNBT", at = @At(value = "INVOKE", target = "Lcom/github/standobyte/jojo/power/impl/nonstand/type/hamon/MainHamonSkillsManager;fromNbt(Lnet/minecraft/nbt/CompoundNBT;)V"), cancellable = true, remap = false)
     public void readNBT(CompoundNBT nbt, CallbackInfo ci) {
