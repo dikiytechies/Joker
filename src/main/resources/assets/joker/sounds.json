@@ -22,5 +22,11 @@
   },
   "joker_iggy_ringtone": {
     "sounds": ["joker:joker_iggy_ringtone"]
+  },
+  "joker_iggy_fart": {
+    "sounds": ["joker:joker_iggy_fart"]
+  },
+  "joker_iggy_brain_fart": {
+    "sounds": ["joker:joker_iggy_brain_fart"]
   }
 }

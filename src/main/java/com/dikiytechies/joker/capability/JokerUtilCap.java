@@ -5,13 +5,17 @@ import com.dikiytechies.joker.network.AddonPackets;
 import com.dikiytechies.joker.network.packets.fromserver.*;
 import com.dikiytechies.joker.potion.GreedStatusEffect;
 import com.dikiytechies.joker.potion.PrideStatusEffect;
+import com.github.standobyte.jojo.client.ClientUtil;
 import com.github.standobyte.jojo.util.mc.MCUtil;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.Hand;
 import net.minecraftforge.common.util.INBTSerializable;
 
@@ -36,6 +40,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     private PrideStatusEffect.MultiCastType multiCastType;
     private int multiCastTicksLeft;
     private LivingEntity multiCastTarget;
+    private float multicastDamage;
     private EffectSelectionScreen.EffectTypes favorite;
     private EffectSelectionScreen.EffectTypes activeEffect;
     private float greedMaxHealth;
@@ -208,7 +213,9 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     public void setPrideAttackerTicks(int ticks) {
         setPrideStacks(ticks, TrPrideStacksPacket.StackType.ATTACKER_TICK);
     }
-
+    public static DamageSource multicast(Entity entity) {
+        return  new EntityDamageSource("joker.multicast", entity).bypassArmor().bypassInvul().bypassMagic();
+    }
     public void prideTick() {
         if (prideTargetStacksTicksLeft > 0) {
             prideTargetStacksTicksLeft--;
@@ -221,35 +228,47 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
             if (prideAttackerStacksTicksLeft == 0) {
                 setPrideAttackerStacks(0);
             }
-        }//todo multicast for attacks and abilities
+        }//todo multicast for abilities
         if (multiCastTicksLeft > 0) {
-            if (multiCastType.delay - multiCastTicksLeft == 0) {
-                if (PrideStatusEffect.getMultiCastSound(multiCastType) != null) {
-                    livingEntity.level.playSound(null, livingEntity.blockPosition(), PrideStatusEffect.getMultiCastSound(multiCastType), livingEntity.getSoundSource(), 1.0f, 1.0f);
+            if (multiCastTarget != null) {
+                if (multiCastType.delay - multiCastTicksLeft == 0) { // starter
+                    if (PrideStatusEffect.getMultiCastSound(multiCastType) != null) {
+                        livingEntity.level.playSound(null, livingEntity.blockPosition(), PrideStatusEffect.getMultiCastSound(multiCastType), livingEntity.getSoundSource(), 1.0f, 1.0f);
+                        livingEntity.swing(Hand.MAIN_HAND);
+                        multiCastTarget.invulnerableTime = 0;
+                        System.out.println("starter: " + multiCastTarget.hurt(multicast(livingEntity), multicastDamage));
+                    }
+                } else if (multiCastTicksLeft == 1) {
+                    setPrideMultiCast(PrideStatusEffect.MultiCastType.X1, 0.0f, null);
+                    multiCastTicksLeft++;
+                } else if (PrideStatusEffect.MultiCastType.X3.delay - multiCastTicksLeft == 0) {
                     livingEntity.swing(Hand.MAIN_HAND);
+                    multiCastTarget.invulnerableTime = 0;
+                    System.out.println("3: " + multiCastTarget.hurt(multicast(livingEntity), multicastDamage));
+                } else if (PrideStatusEffect.MultiCastType.X2.delay - multiCastTicksLeft == 0) {
+                    livingEntity.swing(Hand.MAIN_HAND);
+                    multiCastTarget.invulnerableTime = 0;
+                    System.out.println("2: " + multiCastTarget.hurt(multicast(livingEntity), multicastDamage));
                 }
-            } else if (multiCastTicksLeft == 1) {
-                setPrideMultiCast(PrideStatusEffect.MultiCastType.X1);
-                multiCastTicksLeft++;
-            } else if (PrideStatusEffect.MultiCastType.X3.delay - multiCastTicksLeft == 0) {
-                livingEntity.swing(Hand.MAIN_HAND);
-            } else if (PrideStatusEffect.MultiCastType.X2.delay - multiCastTicksLeft == 0) {
-                livingEntity.swing(Hand.MAIN_HAND);
             }
             multiCastTicksLeft--;
         }
     }
 
-    public void setPrideMultiCast(PrideStatusEffect.MultiCastType type) {
+    public void setPrideMultiCast(PrideStatusEffect.MultiCastType type, float damage, LivingEntity target) {
         this.multiCastType = type;
-        this.multiCastTicksLeft = type.delay;
+        this.multiCastTicksLeft = type.delay + 3;
+        this.multicastDamage = damage;
+        this.multiCastTarget = target;
         if (livingEntity instanceof ServerPlayerEntity) {
-            AddonPackets.sendToClient(new TrPrideMultiCastPacket(livingEntity.getId(), type), (ServerPlayerEntity) livingEntity);
+            AddonPackets.sendToClient(new TrPrideMultiCastPacket(livingEntity.getId(), type, damage, target), (ServerPlayerEntity) livingEntity);
         }
     }
     public PrideStatusEffect.MultiCastType getMultiCastType() { return multiCastType; }
     public int getMultiCastTicks() { return multiCastTicksLeft; }
-    public void setMultiCastTarget(LivingEntity target) { this.multiCastTarget = target; }
+    public void setMultiCastTarget(LivingEntity target) {
+        this.multiCastTarget = target;
+    }
     public LivingEntity getMultiCastTarget() { return this.multiCastTarget; }
 
     public void setFavoriteEffect(EffectSelectionScreen.EffectTypes type) {
@@ -292,6 +311,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         updateModifiers(stolenAmount);
         MCUtil.applyAttributeModifier(player, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", greedMaxHealth, AttributeModifier.Operation.ADDITION));
         MCUtil.applyAttributeModifier(player, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", -greedMaxHealth, AttributeModifier.Operation.ADDITION));
+        this.multiCastTarget = multiCastTarget;
     }
     @Override
     public CompoundNBT serializeNBT() {
@@ -313,6 +333,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
             CompoundNBT multicast = new CompoundNBT();
             MCUtil.nbtPutEnum(multicast, "MultiCast", multiCastType);
             multicast.putInt("TicksLeft", multiCastTicksLeft);
+            if (multiCastTarget != null) multicast.putInt("MultiCastTargetId", multiCastTarget.getId());
             pride.put("PrideMultiCast", multicast);
         }
         nbt.put("Pride", pride);
@@ -334,8 +355,13 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         this.prideTargetStacks = stacks.getInt("TargetStacks");
         this.prideTargetStacksTicksLeft = stacks.getInt("TargetTicksLeft");
         CompoundNBT multicast = nbt.getCompound("Pride").getCompound("PrideMultiCast");
-        if (MCUtil.nbtGetEnum(multicast, "MultiCast", PrideStatusEffect.MultiCastType.class) != null) this.multiCastType = MCUtil.nbtGetEnum(multicast, "MultiCast", PrideStatusEffect.MultiCastType.class);
-        this.multiCastTicksLeft = multicast.getInt("TicksLeft");
+        if (MCUtil.nbtGetEnum(multicast, "MultiCast", PrideStatusEffect.MultiCastType.class) != null) {
+            this.multiCastType = MCUtil.nbtGetEnum(multicast, "MultiCast", PrideStatusEffect.MultiCastType.class);
+            this.multiCastTicksLeft = multicast.getInt("TicksLeft");
+            try {
+                this.multiCastTarget = (LivingEntity) ClientUtil.getEntityById(multicast.getInt("MultiCastTarget"));
+            } catch (NullPointerException ignored) {}
+        }
         this.favorite = MCUtil.nbtGetEnum(nbt, "FavoriteEffect", EffectSelectionScreen.EffectTypes.class);
         this.activeEffect = MCUtil.nbtGetEnum(nbt, "ActiveEffect", EffectSelectionScreen.EffectTypes.class);
         this.greedMaxHealth = nbt.getFloat("GreedMaxHealth");

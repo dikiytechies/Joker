@@ -28,6 +28,7 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.EntityDamageSource;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -36,6 +37,8 @@ import net.minecraftforge.fml.common.Mod;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.dikiytechies.joker.capability.JokerUtilCap.multicast;
 
 @Mod.EventBusSubscriber(modid = AddonMain.MOD_ID)
 public class GameplayEventHandler {
@@ -83,7 +86,7 @@ public class GameplayEventHandler {
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingDamage(LivingDamageEvent event) {
-        prideMultiCast(event); //todo anti-recursive system
+        prideMultiCast(event);
         prideStackDamage(event);
         stealAttributesLivingEnvy(event);
         consumeOrGiveEnergyFromSociopathy(event);
@@ -195,13 +198,13 @@ public class GameplayEventHandler {
     }
     private static void prideMultiCast(LivingDamageEvent event) {
         LivingEntity target = event.getEntityLiving();
-        if (!target.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity && target != event.getSource().getEntity()) {
+        if (!target.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity && target != event.getSource().getEntity() &&
+                !event.getSource().getMsgId().equals(multicast(event.getSource().getEntity()).getMsgId())) {
             LivingEntity attacker = (LivingEntity) event.getSource().getEntity();
             if (attacker.hasEffect(AddonStatusEffects.PRIDE.get())) {
                 int amplifier = attacker.getEffect(AddonStatusEffects.PRIDE.get()).getAmplifier();
                 attacker.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
-                    cap.setPrideMultiCast(PrideStatusEffect.applyMultiCast(amplifier));
-                    cap.setMultiCastTarget(target);
+                    cap.setPrideMultiCast(PrideStatusEffect.applyMultiCast(amplifier), event.getAmount(), target);
                 });
             }
         }
@@ -384,6 +387,9 @@ public class GameplayEventHandler {
                 lightningBolt.setPos(event.getEntityLiving().position().x, event.getEntityLiving().position().y, event.getEntityLiving().position().z);
                 event.getEntityLiving().level.addFreshEntity(lightningBolt);
             }
+            event.getEntityLiving().getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
+                if (cap.getMultiCastTicks() > 0) event.setCanceled(true);
+            });
         }
     }
     private static void stealAttributesPlayerEnvy(AttackEntityEvent event) {

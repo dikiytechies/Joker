@@ -38,8 +38,8 @@ public class PrideStatusEffect extends StatusEffect {
     public static enum MultiCastType {
         X1(0),
         X2(4),
-        X3(10),
-        X4(18);
+        X3(8),
+        X4(12);
         public final int delay;
         MultiCastType(int delay) {
             this.delay = delay;

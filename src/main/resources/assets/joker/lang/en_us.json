@@ -1,4 +1,18 @@
 {
 	"non_stand.joker.joker": "Joker",
-	"action.joker.sociopathy": "Sociopathy"
+	"action.joker.sociopathy": "Sociopathy",
+	"action.joker.effect_select": "Select Fighting Stance",
+	"action.joker.effect_quick_select": "Select Featured Sin",
+
+	"item.joker.mask": "Mask",
+
+	"death.attack.joker.multicast": "%s was multicasted by %s",
+
+	"effect.joker.wrath": "Wrath",
+	"effect.joker.envy": "Envy",
+	"effect.joker.pride": "Pride",
+	"effect.joker.lust": "Lust",
+	"effect.joker.gluttony": "Gluttony",
+	"effect.joker.sloth": "Sloth",
+	"effect.joker.greed": "Greed"
 }
