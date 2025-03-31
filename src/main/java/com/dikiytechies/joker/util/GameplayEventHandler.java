@@ -4,6 +4,7 @@ import com.dikiytechies.joker.AddonConfig;
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.capability.JokerUtilCap;
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
+import com.dikiytechies.joker.entity.mob.JokerIggyEntity;
 import com.dikiytechies.joker.init.AddonItems;
 import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.init.Sounds;
@@ -17,9 +18,11 @@ import com.github.standobyte.jojo.init.ModStatusEffects;
 import com.github.standobyte.jojo.potion.BleedingEffect;
 import com.github.standobyte.jojo.power.impl.nonstand.INonStandPower;
 import com.github.standobyte.jojo.util.mc.MCUtil;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.effect.LightningBoltEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.potion.EffectInstance;
@@ -374,6 +377,14 @@ public class GameplayEventHandler {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onPlayerAttack(AttackEntityEvent event) {
         stealAttributesPlayerEnvy(event);
+        if (!event.getEntityLiving().level.isClientSide()) {
+            if (event.getTarget() instanceof JokerIggyEntity &&
+                    !(event.getEntityLiving() instanceof PlayerEntity && ((PlayerEntity) event.getEntityLiving()).abilities.invulnerable)) {
+                LightningBoltEntity lightningBolt = new LightningBoltEntity(EntityType.LIGHTNING_BOLT, event.getEntityLiving().level);
+                lightningBolt.setPos(event.getEntityLiving().position().x, event.getEntityLiving().position().y, event.getEntityLiving().position().z);
+                event.getEntityLiving().level.addFreshEntity(lightningBolt);
+            }
+        }
     }
     private static void stealAttributesPlayerEnvy(AttackEntityEvent event) {
         PlayerEntity player = event.getPlayer();

@@ -75,8 +75,10 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
     }
 
     private void tickCasting() {
-        if (this.isCasting && ticksLeft == 30) {
-            level.playSound(null, castTarget.blockPosition(), Sounds.JOKER_IGGY_RINGTONE.get(), SoundCategory.RECORDS, 1.0f, 1.0f);
+        if (this.isCasting && ticksLeft == 30 && !level.isClientSide()) {
+            level.getServer().getPlayerList().getPlayers().forEach(sp -> {
+                level.playSound(null, sp.blockPosition(), Sounds.JOKER_IGGY_RINGTONE.get(), SoundCategory.RECORDS, 1.0f, 1.0f);
+            });
         }
         if (this.isCasting && ticksLeft == 0) {
             this.isCasting = false;

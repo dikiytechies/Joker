@@ -18,6 +18,7 @@ public class AddonEntities {
     public static final RegistryObject<EntityType<JokerIggyEntity>> JOKER_IGGY = ENTITIES.register("joker_iggy",
             () -> EntityType.Builder.<JokerIggyEntity>of(JokerIggyEntity::new, EntityClassification.MISC)
                     .sized(0.65f, 0.7f)
+                    .fireImmune()
                     .build(new ResourceLocation(AddonMain.MOD_ID, "joker_iggy").toString()));
     @SubscribeEvent
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
