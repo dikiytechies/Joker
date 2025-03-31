@@ -43,7 +43,7 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
     private float multicastDamage;
     private EffectSelectionScreen.EffectTypes favorite;
     private EffectSelectionScreen.EffectTypes activeEffect;
-    private float greedMaxHealth;
+    public float greedMaxHealth;
     public JokerUtilCap(LivingEntity livingEntity) { this.livingEntity = livingEntity; }
 
     public void setSwanSong(boolean value) {
@@ -236,7 +236,6 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
                         livingEntity.level.playSound(null, livingEntity.blockPosition(), PrideStatusEffect.getMultiCastSound(multiCastType), livingEntity.getSoundSource(), 1.0f, 1.0f);
                         livingEntity.swing(Hand.MAIN_HAND);
                         multiCastTarget.invulnerableTime = 0;
-                        System.out.println("starter: " + multiCastTarget.hurt(multicast(livingEntity), multicastDamage));
                     }
                 } else if (multiCastTicksLeft == 1) {
                     setPrideMultiCast(PrideStatusEffect.MultiCastType.X1, 0.0f, null);
@@ -244,11 +243,9 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
                 } else if (PrideStatusEffect.MultiCastType.X3.delay - multiCastTicksLeft == 0) {
                     livingEntity.swing(Hand.MAIN_HAND);
                     multiCastTarget.invulnerableTime = 0;
-                    System.out.println("3: " + multiCastTarget.hurt(multicast(livingEntity), multicastDamage));
                 } else if (PrideStatusEffect.MultiCastType.X2.delay - multiCastTicksLeft == 0) {
                     livingEntity.swing(Hand.MAIN_HAND);
                     multiCastTarget.invulnerableTime = 0;
-                    System.out.println("2: " + multiCastTarget.hurt(multicast(livingEntity), multicastDamage));
                 }
             }
             multiCastTicksLeft--;
@@ -311,7 +308,6 @@ public class JokerUtilCap implements INBTSerializable<CompoundNBT> {
         updateModifiers(stolenAmount);
         MCUtil.applyAttributeModifier(player, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", greedMaxHealth, AttributeModifier.Operation.ADDITION));
         MCUtil.applyAttributeModifier(player, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", -greedMaxHealth, AttributeModifier.Operation.ADDITION));
-        this.multiCastTarget = multiCastTarget;
     }
     @Override
     public CompoundNBT serializeNBT() {

@@ -2,7 +2,6 @@ package com.dikiytechies.joker.util;
 
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.command.JokeCommand;
-import com.dikiytechies.joker.init.AddonStructures;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.command.CommandSource;
 import net.minecraft.world.gen.feature.StructureFeature;

@@ -3,9 +3,6 @@ package com.dikiytechies.joker.client.model;
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.item.MaskItem;
 import net.minecraft.util.ResourceLocation;
-import software.bernie.example.item.PotatoArmorItem;
-import software.bernie.geckolib3.GeckoLib;
-import software.bernie.geckolib3.geo.render.built.GeoModel;
 import software.bernie.geckolib3.model.AnimatedGeoModel;
 
 public class MaskArmorModel extends AnimatedGeoModel<MaskItem> {

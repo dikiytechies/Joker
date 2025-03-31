@@ -4,7 +4,6 @@ import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.item.AddonArmorMaterials;
 import com.dikiytechies.joker.item.MaskItem;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ArmorMaterial;
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;

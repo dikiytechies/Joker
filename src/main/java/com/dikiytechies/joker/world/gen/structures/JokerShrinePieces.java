@@ -1,8 +1,6 @@
 package com.dikiytechies.joker.world.gen.structures;
 
 import com.dikiytechies.joker.AddonMain;
-import com.github.standobyte.jojo.JojoMod;
-import com.github.standobyte.jojo.world.gen.structures.HamonTemplePieces;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.ResourceLocation;

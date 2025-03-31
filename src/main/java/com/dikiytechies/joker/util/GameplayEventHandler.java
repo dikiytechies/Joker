@@ -1,6 +1,5 @@
 package com.dikiytechies.joker.util;
 
-import com.dikiytechies.joker.AddonConfig;
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.capability.JokerUtilCap;
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
@@ -28,7 +27,6 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EntityDamageSource;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -47,23 +45,24 @@ public class GameplayEventHandler {
         slothDeath(event);
         eraseEnvyDataOnDeath(event);
     }
-    //todo sloth death fix
     private static void slothDeath(LivingDeathEvent event) {
         LivingEntity entity = event.getEntityLiving();
-        if (entity.hasEffect(AddonStatusEffects.SLOTH.get())) {
-            EffectInstance sloth = entity.getActiveEffectsMap().get(AddonStatusEffects.SLOTH.get());
-            if (INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
-                if (!entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false))
+        if (!entity.level.isClientSide()) {
+            if (entity.hasEffect(AddonStatusEffects.SLOTH.get())) {
+                EffectInstance sloth = entity.getActiveEffectsMap().get(AddonStatusEffects.SLOTH.get());
+                if (INonStandPower.getNonStandPowerOptional(entity).map(p -> p.getType() == JokerPowerInit.JOKER.get()).orElse(false)) {
+                    if (!entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false))
+                        entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
+                } else if (sloth.getDuration() > 90) {
+                    entity.removeEffect(sloth.getEffect());
+                    entity.addEffect(new EffectInstance(AddonStatusEffects.SLOTH.get(), 90, sloth.getAmplifier(), sloth.isAmbient(), sloth.isVisible(), sloth.showIcon()));
                     entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
-            } else if (sloth.getDuration() > 90) {
-                entity.removeEffect(sloth.getEffect());
-                entity.addEffect(new EffectInstance(AddonStatusEffects.SLOTH.get(), 90, sloth.getAmplifier(), sloth.isAmbient(), sloth.isVisible(), sloth.showIcon()));
-                entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setSwanSong(true));
-            }
-            if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) {
-                entity.setHealth(0.000001f);
-                entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setBorrowedHealth(cap.getBorrowedHealth() + 0.00001f));
-                event.setCanceled(true);
+                }
+                if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) {
+                    entity.setHealth(0.000001f);
+                    entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> cap.setBorrowedHealth(cap.getBorrowedHealth() + 0.00001f));
+                    event.setCanceled(true);
+                }
             }
         }
         //}
@@ -222,6 +221,15 @@ public class GameplayEventHandler {
         });
     }
     @SubscribeEvent(priority = EventPriority.LOW)
+    public static void onEffectGive(PotionEvent.PotionAddedEvent event) {
+        LivingEntity living = event.getEntityLiving();
+        if (event.getPotionEffect().getEffect() == AddonStatusEffects.GREED.get())
+            if (living.getHealth() != living.getMaxHealth()) {
+                MCUtil.applyAttributeModifier(living, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", living.getHealth() - GreedStatusEffect.getMaxHealthWithoutGreed(living), AttributeModifier.Operation.ADDITION));
+                MCUtil.applyAttributeModifier(living, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", -(living.getHealth() - GreedStatusEffect.getMaxHealthWithoutGreed(living)), AttributeModifier.Operation.ADDITION));
+            }
+    }
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onEffectExpiry(PotionEvent.PotionExpiryEvent event) {
         slothExpiry(event);
         greedExpiry(event);
@@ -234,7 +242,7 @@ public class GameplayEventHandler {
                     entity.removeEffect(event.getPotionEffect().getEffect());
                     cap.setSwanSong(false);
                     if (!(entity instanceof PlayerEntity) || !((PlayerEntity) entity).abilities.instabuild && !entity.isSpectator()) {
-                        entity.hurt(DamageSource.WITHER.bypassMagic().bypassArmor().bypassInvul(), cap.getBorrowedHealth());
+                        entity.setHealth(entity.getHealth() - cap.getBorrowedHealth());
                     }
                     cap.setBorrowedHealth(0.0f);
                 }
@@ -242,15 +250,15 @@ public class GameplayEventHandler {
         }
     }
     private static void greedExpiry(PotionEvent.PotionExpiryEvent event) {
-        if (event.getPotionEffect().getEffect() == AddonStatusEffects.SLOTH.get() && !event.getEntityLiving().level.isClientSide()) {
+        if (event.getPotionEffect().getEffect() == AddonStatusEffects.GREED.get() && !event.getEntityLiving().level.isClientSide()) {
             LivingEntity entity = event.getEntityLiving();
             MCUtil.removeAttributeModifier(entity, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", 0.0, AttributeModifier.Operation.ADDITION));
             MCUtil.removeAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", 0.0, AttributeModifier.Operation.ADDITION));
-            entity.setHealth(entity.getMaxHealth());
         }
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onEffectClear(PotionEvent.PotionRemoveEvent event) {
+        slothClear(event);
         greedClear(event);
     }
     private static void greedClear(PotionEvent.PotionRemoveEvent event) {
@@ -258,7 +266,20 @@ public class GameplayEventHandler {
             LivingEntity entity = event.getEntityLiving();
             MCUtil.removeAttributeModifier(entity, Attributes.MAX_HEALTH, new AttributeModifier(GreedStatusEffect.HEALTH_ATTRIBUTE_MODIFIER_ID, "Greed max health", 0.0, AttributeModifier.Operation.ADDITION));
             MCUtil.removeAttributeModifier(entity, Attributes.ARMOR, new AttributeModifier(GreedStatusEffect.ARMOR_ATTRIBUTE_MODIFIER_ID, "Greed armor", 0.0, AttributeModifier.Operation.ADDITION));
-            entity.setHealth(entity.getMaxHealth());
+        }
+    }
+    private static void slothClear(PotionEvent.PotionRemoveEvent event) {
+        if (event.getPotion() == AddonStatusEffects.SLOTH.get()) {
+            LivingEntity entity = event.getEntityLiving();
+            entity.getCapability(JokerUtilCapProvider.CAPABILITY).ifPresent(cap -> {
+                if (cap.isSwanSong()) {
+                    cap.setSwanSong(false);
+                    if (!(entity instanceof PlayerEntity) || !((PlayerEntity) entity).abilities.instabuild && !entity.isSpectator()) {
+                        entity.setHealth(entity.getHealth() - cap.getBorrowedHealth());
+                    }
+                    cap.setBorrowedHealth(0.0f);
+                }
+            });
         }
     }
     @SubscribeEvent(priority = EventPriority.NORMAL)

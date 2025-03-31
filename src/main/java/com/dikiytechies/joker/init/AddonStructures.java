@@ -3,8 +3,6 @@ package com.dikiytechies.joker.init;
 import com.dikiytechies.joker.AddonConfig;
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.world.gen.structures.JokerShrineStructure;
-import com.github.standobyte.jojo.JojoMod;
-import com.github.standobyte.jojo.JojoModConfig;
 import com.github.standobyte.jojo.util.ForgeBusEventSubscriber;
 import com.github.standobyte.jojo.util.mc.reflection.CommonReflection;
 import com.github.standobyte.jojo.world.gen.ConfiguredStructureSupplier;

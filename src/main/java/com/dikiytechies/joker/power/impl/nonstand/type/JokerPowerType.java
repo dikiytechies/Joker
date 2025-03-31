@@ -1,5 +1,6 @@
 package com.dikiytechies.joker.power.impl.nonstand.type;
 
+import com.dikiytechies.joker.capability.JokerUtilCap;
 import com.dikiytechies.joker.capability.JokerUtilCapProvider;
 import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
@@ -208,6 +209,8 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
         LivingEntity entity = power.getUser();
         JokerData jokerData = power.getTypeSpecificData(this).get();
         if (entity.getCapability(JokerUtilCapProvider.CAPABILITY).isPresent() && entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(cap -> cap.getActiveEffect() != null && cap.getActiveEffect().effect.equals(effect)).orElse(false)) {
+            if (effect == AddonStatusEffects.SLOTH.get() && power.getEnergy() <= 0f &&
+                    entity.getCapability(JokerUtilCapProvider.CAPABILITY).isPresent() && entity.getCapability(JokerUtilCapProvider.CAPABILITY).map(JokerUtilCap::isSwanSong).orElse(false)) return -1;
             return Math.max(-1, jokerData.getStage() - 2);
         }
 
