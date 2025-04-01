@@ -100,12 +100,14 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
                     }
                 }
             } else {
+                if (!level.isClientSide()) {
                 for (EffectSelectionScreen.EffectTypes effectType : EffectSelectionScreen.EffectTypes.values()) {
-                    if (!level.isClientSide()) castTarget.removeEffect(effectType.effect);
+                    castTarget.removeEffect(effectType.effect);
                 }
                 level.getServer().getPlayerList().getPlayers().forEach(sp -> {
                     setCoughing(true, 25);
                 });
+                }
             }
             this.castTarget = null;
         }
