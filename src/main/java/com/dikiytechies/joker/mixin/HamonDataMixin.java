@@ -4,10 +4,13 @@ import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
 import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
+import com.github.standobyte.jojo.network.PacketManager;
+import com.github.standobyte.jojo.network.packets.fromserver.TrHamonProtectionPacket;
 import com.github.standobyte.jojo.power.impl.nonstand.TypeSpecificData;
 import com.github.standobyte.jojo.power.impl.nonstand.type.NonStandPowerType;
 import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.HamonData;
 import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.MainHamonSkillsManager;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.CompoundNBT;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -42,6 +45,21 @@ public abstract class HamonDataMixin extends TypeSpecificData {
     @Shadow private MainHamonSkillsManager hamonSkills;
     @Shadow public void setExerciseTicks(int[] ticks, boolean clientSide) {}
     @Shadow private EnumMap<HamonData.Exercise, Integer> exerciseTicks;
+    @Shadow private boolean hamonProtection = false;
+    @Inject(method = "setHamonProtection", at = @At("HEAD"), cancellable = true, remap = false)
+    public void setHamonProtection(boolean isEnabled, CallbackInfo ci) {
+        if (power.getType() == JokerPowerInit.JOKER.get() && power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(j -> j.getPreviousPowerType() == ModPowers.HAMON.get()).orElse(false)) {
+            HamonData hamon = power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(j -> (HamonData) j.getPreviousData()).get();
+            if (hamonProtection != isEnabled) {
+                hamonProtection = isEnabled;
+                LivingEntity user = power.getUser();
+                if (!user.level.isClientSide()) {
+                    PacketManager.sendToClientsTrackingAndSelf(new TrHamonProtectionPacket(user.getId(), hamon), user);
+                }
+            }
+            ci.cancel();
+        }
+    }
 
     @Inject(method = "onPowerGiven", at = @At("HEAD"), cancellable = true, remap = false)
     public void restoreData(NonStandPowerType<?> oldType, TypeSpecificData oldData, CallbackInfo ci) {

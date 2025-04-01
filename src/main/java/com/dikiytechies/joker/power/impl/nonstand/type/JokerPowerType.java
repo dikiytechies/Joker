@@ -6,9 +6,11 @@ import com.dikiytechies.joker.init.AddonStatusEffects;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.github.standobyte.jojo.JojoModConfig;
 import com.github.standobyte.jojo.action.Action;
+import com.github.standobyte.jojo.action.non_stand.HamonAction;
 import com.github.standobyte.jojo.action.non_stand.PillarmanAction;
 import com.github.standobyte.jojo.client.controls.ControlScheme;
 import com.github.standobyte.jojo.init.power.non_stand.ModPowers;
+import com.github.standobyte.jojo.init.power.non_stand.hamon.ModHamonActions;
 import com.github.standobyte.jojo.init.power.non_stand.pillarman.ModPillarmanActions;
 import com.github.standobyte.jojo.init.power.non_stand.vampirism.ModVampirismActions;
 import com.github.standobyte.jojo.init.power.non_stand.zombie.ModZombieActions;
@@ -32,8 +34,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 public class JokerPowerType extends NonStandPowerType<JokerData> {
     private ResourceLocation[] iconTexture = new ResourceLocation[4];
@@ -276,14 +277,23 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             HamonData hamon = (HamonData) power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(JokerData::getPreviousData).get();
             CharacterHamonTechnique technique = hamon.getCharacterTechnique();
             Collection<CharacterTechniqueHamonSkill> techniqueSkills = hamon.getTechniqueData().getLearnedSkills();
+            Iterator<AbstractHamonSkill> hamonSkills = hamon.getLearnedSkills().iterator();
+            List<AbstractHamonSkill> hamonSkillsList = new ArrayList<>();
+            while (hamonSkills.hasNext()) {
+                AbstractHamonSkill i = hamonSkills.next();
+                hamonSkillsList.add(i);
+            }
 
             if (technique != null) {
                 technique.getPerksOnPick().forEach(techniquePerk -> {
-                    addHamonSkillAction(techniquePerk, controlScheme);
+                    addHamonTechniqueSkillAction(techniquePerk, controlScheme);
                 });
             }
             for (AbstractHamonSkill techniqueSkill : techniqueSkills) {
-                addHamonSkillAction(techniqueSkill, controlScheme);
+                addHamonTechniqueSkillAction(techniqueSkill, controlScheme);
+            }
+            for (AbstractHamonSkill skill: hamonSkillsList) {
+                addHamonSkillAction(skill, controlScheme);
             }
         } else if (data.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {
             controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModPillarmanActions.PILLARMAN_HEAVY_PUNCH.get());
@@ -333,9 +343,21 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             controlScheme.addIfMissing(ControlScheme.Hotbar.LEFT_CLICK, ModZombieActions.ZOMBIE_DEVOUR.get());
         }
     }
-
     private static void addHamonSkillAction(AbstractHamonSkill skill, ControlScheme controlScheme) {
+        skill.getRewardActions(false).forEach(action -> {
+            System.out.println(action);
+            ControlScheme.Hotbar hotbar;
+            if (Arrays.stream(ModHamonActions.HAMON.get().getAttacks()).anyMatch(a -> a == action)) {
+                hotbar = ControlScheme.Hotbar.LEFT_CLICK;
+            } else if (Arrays.stream(ModHamonActions.HAMON.get().getAbilities()).anyMatch(a -> a == action)) {
+                hotbar = ControlScheme.Hotbar.RIGHT_CLICK;
+            } else return;
+            controlScheme.addIfMissing(hotbar, action);
+        });
+    }
+    private static void addHamonTechniqueSkillAction(AbstractHamonSkill skill, ControlScheme controlScheme) {
         skill.getRewardActions(true).forEach(action -> {
+            System.out.println(action);
             ControlScheme.Hotbar hotbar;
             switch (skill.getRewardType()) {
                 case ATTACK:
@@ -356,7 +378,18 @@ public class JokerPowerType extends NonStandPowerType<JokerData> {
             if (action == JokerPowerInit.EFFECT_SELECT.get()) return true;
         }
         if (data.getPreviousPowerType() == ModPowers.HAMON.get()) {
-
+            if (action instanceof HamonAction) {
+//                    HamonData hamon = (HamonData) power.getTypeSpecificData(this).map(JokerData::getPreviousData).get();
+//                AbstractHamonSkill hamonSkill = ((HamonAction) action).getUnlockingSkill();
+//                    Collection<CharacterTechniqueHamonSkill> techniqueSkills = hamon.getTechniqueData().getLearnedSkills();
+//                    Iterator<AbstractHamonSkill> skills = hamon.getLearnedSkills().iterator();
+//                List<AbstractHamonSkill> hamonSkillsList = new ArrayList<>();
+//                while (skills.hasNext()) {
+//                    hamonSkillsList.add(skills.next());
+//                }
+//                return hamonSkillsList.contains(hamonSkill);
+                return true;
+            }
         } else if (data.getPreviousPowerType() == ModPowers.PILLAR_MAN.get()) {
             if (action instanceof PillarmanAction) {
                 PillarmanAction pmAction = (PillarmanAction) action;
