@@ -105,7 +105,7 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
                     castTarget.removeEffect(effectType.effect);
                 }
                 level.getServer().getPlayerList().getPlayers().forEach(sp -> {
-                    setCoughing(true, 25);
+                    setJokerCoughing(true, 25, sp);
                 });
                 }
             }
@@ -164,9 +164,12 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
         }
     }
     public boolean isSmoking() { return isSmoking; }
-    public void setCoughing(boolean isCoughing, int ticksLeft) {
+    public void setJokerCoughing(boolean isCoughing, int ticksLeft, PlayerEntity player) {
         this.isCoughing = isCoughing;
         this.ticksLeft = ticksLeft;
+        if (player instanceof ServerPlayerEntity) {
+            AddonPackets.sendToClient(new TrJokerStatePacket(this.getId(), isCoughing, player.getId(), TrJokerStatePacket.JokerDataType.COUGHING, ticksLeft), player);
+        }
         level.playSound(null, this.blockPosition(), Sounds.COUGH.get(), this.getSoundSource(), 1.0f, 1.0f);
     }
     @Override

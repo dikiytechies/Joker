@@ -60,6 +60,9 @@ public class TrJokerStatePacket {
                     case SMOKING:
                         ((JokerIggyEntity) entity).setJokerSmoking(msg.sleepy, (PlayerEntity) player, msg.ticks);
                         break;
+                    case COUGHING:
+                        ((JokerIggyEntity) entity).setJokerCoughing(msg.sleepy, msg.ticks, (PlayerEntity) player);
+                        break;
                 }
             }
         }
@@ -71,6 +74,7 @@ public class TrJokerStatePacket {
     }
     public static enum JokerDataType {
         SLEEPY,
-        SMOKING
+        SMOKING,
+        COUGHING
     }
 }

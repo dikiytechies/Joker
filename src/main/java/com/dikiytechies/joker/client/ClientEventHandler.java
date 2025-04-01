@@ -32,7 +32,6 @@ public class ClientEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     @OnlyIn(Dist.CLIENT)
     public static void onRenderPlayerPre(RenderPlayerEvent.Pre event) {
-        if (!ClientUtil.canSeeStands()) return;
         PlayerEntity player = event.getPlayer();
         PlayerModel<AbstractClientPlayerEntity> model = event.getRenderer().getModel();
         if (player.hasEffect(AddonStatusEffects.GREED.get())) {
