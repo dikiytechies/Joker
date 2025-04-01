@@ -1,0 +1,20 @@
+{
+  "non_stand.joker.joker": "Джокер",
+  "action.joker.sociopathy": "социопатия",
+  "action.joker.effect_select": "выбрать боевую стойку",
+  "action.joker.effect_quick_select": "избранный грех",
+
+  "item.joker.mask": "маска",
+
+  "death.attack.joker.multicast": "%s был преумножен %s",
+
+  "effect.joker.wrath": "гнев",
+  "effect.joker.envy": "зависть",
+  "effect.joker.pride": "гордыня",
+  "effect.joker.lust": "блуд",
+  "effect.joker.gluttony": "обжорство",
+  "effect.joker.sloth": "уныние",
+  "effect.joker.greed": "алчность",
+
+  "entity.joker.joker_iggy": "Джокер Игги"
+}

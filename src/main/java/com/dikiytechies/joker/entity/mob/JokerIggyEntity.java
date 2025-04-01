@@ -95,7 +95,7 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
                     level.playSound(null, castTarget.blockPosition(), SoundEvents.PLAYER_LEVELUP, castTarget.getSoundSource(), 1.0f, 1.0f);
                     if (random.nextInt() < 10) {
                         level.getServer().getPlayerList().getPlayers().forEach(sp -> {
-                            setJokerSmoking(true, sp, 8000);
+                            setJokerSmoking(true, sp, 800);
                         });
                     }
                 }
@@ -103,7 +103,9 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
                 for (EffectSelectionScreen.EffectTypes effectType : EffectSelectionScreen.EffectTypes.values()) {
                     if (!level.isClientSide()) castTarget.removeEffect(effectType.effect);
                 }
-                setCoughing(true, 25);
+                level.getServer().getPlayerList().getPlayers().forEach(sp -> {
+                    setCoughing(true, 25);
+                });
             }
             this.castTarget = null;
         }

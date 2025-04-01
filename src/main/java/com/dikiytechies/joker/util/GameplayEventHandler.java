@@ -197,7 +197,7 @@ public class GameplayEventHandler {
     }
     private static void prideMultiCast(LivingDamageEvent event) {
         LivingEntity target = event.getEntityLiving();
-        if (!target.level.isClientSide() && event.getSource().getEntity() instanceof LivingEntity && target != event.getSource().getEntity() &&
+        if (event.getSource().getEntity() instanceof LivingEntity && target != event.getSource().getEntity() &&
                 !event.getSource().getMsgId().equals(multicast(event.getSource().getEntity()).getMsgId())) {
             LivingEntity attacker = (LivingEntity) event.getSource().getEntity();
             if (attacker.hasEffect(AddonStatusEffects.PRIDE.get())) {

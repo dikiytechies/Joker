@@ -1,6 +1,5 @@
 package com.dikiytechies.joker.mixin;
 
-import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
 import com.github.standobyte.jojo.init.power.non_stand.ModPowers;

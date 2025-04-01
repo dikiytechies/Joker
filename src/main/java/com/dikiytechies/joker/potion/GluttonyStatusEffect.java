@@ -31,7 +31,10 @@ public class GluttonyStatusEffect extends StatusEffect {
                             result = true;
                         }
                     }
-                    if (result) entity.setHealth(entity.getHealth() - heal);
+                    if (result) {
+                        entity.setHealth(entity.getHealth() - heal);
+                        entity.hurtMarked = false;
+                    }
                 }
             });
         }
