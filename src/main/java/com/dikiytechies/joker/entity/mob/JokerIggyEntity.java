@@ -95,7 +95,7 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
                     level.playSound(null, castTarget.blockPosition(), SoundEvents.PLAYER_LEVELUP, castTarget.getSoundSource(), 1.0f, 1.0f);
                     if (random.nextInt() < 10) {
                         level.getServer().getPlayerList().getPlayers().forEach(sp -> {
-                            setJokerSmoking(true, sp, 150);
+                            setJokerSmoking(true, sp, 8000);
                         });
                     }
                 }
@@ -120,6 +120,11 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
         }
     }
     private void tickCoughing() {
+        if (this.isCoughing && ticksLeft == 13) {
+            if (!level.isClientSide()) level.getServer().getPlayerList().getPlayers().forEach(sp -> {
+                level.playSound(null, sp.blockPosition(), Sounds.JOKER_IGGY_ULTRA_SNEEZE.get(), SoundCategory.RECORDS, 1.0f, 1.0f);
+            });
+        }
         if (this.isCoughing && ticksLeft == 0) {
             isCoughing = false;
             ItemStack maskStack = new ItemStack(AddonItems.MASK.get());
@@ -158,7 +163,7 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
     public void setCoughing(boolean isCoughing, int ticksLeft) {
         this.isCoughing = isCoughing;
         this.ticksLeft = ticksLeft;
-        level.playSound(null, this.blockPosition(), Sounds.JOKER_IGGY_ULTRA_SNEEZE.get(), this.getSoundSource(), 1.0f, 1.0f);
+        level.playSound(null, this.blockPosition(), Sounds.COUGH.get(), this.getSoundSource(), 1.0f, 1.0f);
     }
     @Override
     public boolean removeWhenFarAway(double distanceFromPlayer) {
@@ -167,7 +172,6 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
     // todo fix shadow consume
     @Override
     protected ActionResultType mobInteract(PlayerEntity player, Hand hand) {
-        lookAt(player, player.getRotationVector().x, player.getRotationVector().y);
         boolean prevSleep = sleepy;
         if (!level.isClientSide() && level.isDay() != sleepy) {
             level.getServer().getPlayerList().getPlayers().forEach(sp -> {
