@@ -28,5 +28,11 @@
   },
   "joker_iggy_brain_fart": {
     "sounds": ["joker:joker_iggy_brain_fart"]
+  },
+  "joker_iggy_ultra_sneeze": {
+    "sounds": ["joker:joker_iggy_ultra_sneeze"]
+  },
+  "cough": {
+    "sounds": ["joker:cough", "joker:cough_2", "joker:cough_3", "joker:cough_4"]
   }
 }

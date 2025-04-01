@@ -1,5 +1,6 @@
 package com.dikiytechies.joker.mixin;
 
+import com.dikiytechies.joker.init.Sounds;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import com.dikiytechies.joker.power.impl.nonstand.type.JokerData;
 import com.github.standobyte.jojo.action.ActionConditionResult;
@@ -15,6 +16,7 @@ import com.github.standobyte.jojo.power.impl.nonstand.type.hamon.skill.Character
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -30,6 +32,8 @@ import java.util.Optional;
 public abstract class HamonActionMixin extends NonStandAction {
     @Shadow protected boolean changesAuraColor() { return true; }
     public HamonActionMixin(HamonActionMixin.AbstractBuilder<?> builder) { super(builder); }
+
+
     @Inject(method = "checkConditions(Lnet/minecraft/entity/LivingEntity;Lcom/github/standobyte/jojo/power/impl/nonstand/INonStandPower;Lcom/github/standobyte/jojo/action/ActionTarget;)Lcom/github/standobyte/jojo/action/ActionConditionResult;", at = @At("HEAD"), cancellable = true, remap = false)
     public void jokerHamonResult(LivingEntity user, INonStandPower power, ActionTarget target, CallbackInfoReturnable<ActionConditionResult> cir) {
         if (power.getType() == JokerPowerInit.JOKER.get() && power.getTypeSpecificData(JokerPowerInit.JOKER.get()).map(j -> j.getPreviousPowerType() == ModPowers.HAMON.get()).orElse(false)) {
@@ -47,11 +51,12 @@ public abstract class HamonActionMixin extends NonStandAction {
                 cir.setReturnValue(hamonCheck);
                 cir.cancel();
             }
-
-            cir.setReturnValue(super.checkConditions(user, power, target));
+            user.level.playSound(null, user.blockPosition(), Sounds.COUGH.get(), user.getSoundSource(), 1.0f, 1.0f);
+            cir.setReturnValue(ActionConditionResult.NEGATIVE);
             cir.cancel();
         }
     }
+
     @Inject(method = "afterClick(Lnet/minecraft/world/World;Lnet/minecraft/entity/LivingEntity;Lcom/github/standobyte/jojo/power/impl/nonstand/INonStandPower;Z)V", at = @At("HEAD"), cancellable = true, remap = false)
     public void afterClick(World world, LivingEntity user, INonStandPower power, boolean passedRequirements, CallbackInfo ci) {
         if (changesAuraColor() && passedRequirements) {

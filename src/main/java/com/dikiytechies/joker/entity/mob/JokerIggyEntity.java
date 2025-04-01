@@ -158,7 +158,7 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
     public void setCoughing(boolean isCoughing, int ticksLeft) {
         this.isCoughing = isCoughing;
         this.ticksLeft = ticksLeft;
-        level.playSound(null, this.blockPosition(), SoundEvents.COW_AMBIENT, this.getSoundSource(), 1.0f, 1.0f);
+        level.playSound(null, this.blockPosition(), Sounds.JOKER_IGGY_ULTRA_SNEEZE.get(), this.getSoundSource(), 1.0f, 1.0f);
     }
     @Override
     public boolean removeWhenFarAway(double distanceFromPlayer) {

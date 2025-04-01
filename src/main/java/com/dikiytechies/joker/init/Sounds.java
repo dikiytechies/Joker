@@ -32,4 +32,9 @@ public class Sounds {
             () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "joker_iggy_fart")));
     public static final RegistryObject<SoundEvent> JOKER_IGGY_BRAIN_FART = SOUNDS.register("joker_iggy_brain_fart",
             () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "joker_iggy_brain_fart")));
+    public static final RegistryObject<SoundEvent> JOKER_IGGY_ULTRA_SNEEZE = SOUNDS.register("joker_iggy_ultra_sneeze",
+            () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "joker_iggy_ultra_sneeze")));
+
+    public static final RegistryObject<SoundEvent> COUGH = SOUNDS.register("cough",
+            () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "cough")));
 }
