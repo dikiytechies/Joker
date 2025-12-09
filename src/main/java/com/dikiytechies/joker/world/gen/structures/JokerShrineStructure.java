@@ -1,5 +1,6 @@
 package com.dikiytechies.joker.world.gen.structures;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.SharedSeedRandom;
 import net.minecraft.util.math.BlockPos;
@@ -18,8 +19,8 @@ import net.minecraft.world.gen.feature.structure.StructureStart;
 import net.minecraft.world.gen.feature.template.TemplateManager;
 
 public class JokerShrineStructure extends Structure<NoFeatureConfig> {
-    public JokerShrineStructure() {
-        super(NoFeatureConfig.CODEC);
+    public JokerShrineStructure(Codec<NoFeatureConfig> codec) {
+        super(codec);
     }
     @Override
     public GenerationStage.Decoration step() { return GenerationStage.Decoration.SURFACE_STRUCTURES; }
