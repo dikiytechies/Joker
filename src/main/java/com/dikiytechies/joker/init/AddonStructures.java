@@ -12,6 +12,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.WorldGenRegistries;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.gen.FlatGenerationSettings;
 import net.minecraft.world.gen.feature.IFeatureConfig;
 import net.minecraft.world.gen.feature.NoFeatureConfig;
 import net.minecraft.world.gen.feature.StructureFeature;
@@ -32,12 +33,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import static com.dikiytechies.joker.world.gen.structures.ConfiguredStructures.CONFIGURED_SHRINE;
+import static com.dikiytechies.joker.world.gen.structures.ConfiguredStructures.registerConfiguredStructure;
+
 @Mod.EventBusSubscriber(modid = AddonMain.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class AddonStructures {
     public static final DeferredRegister<Structure<?>> STRUCTURES = DeferredRegister.create(ForgeRegistries.STRUCTURE_FEATURES, AddonMain.MOD_ID);
     public static final Predicate<BiomeLoadingEvent> SHRINE_BIOMES = biome -> biome.getCategory() == Biome.Category.MESA;
     public static final RegistryObject<Structure<NoFeatureConfig>> SHRINE = STRUCTURES.register("shrine", () -> (new JokerShrineStructure(NoFeatureConfig.CODEC)));
-    public static final ConfiguredStructureSupplier<?, ?> CONFIGURED_SHRINE = new ConfiguredStructureSupplier<>(SHRINE, IFeatureConfig.NONE);
 
     @SubscribeEvent(priority = EventPriority.LOW)
     public static final void afterStructuresRegister(RegistryEvent.Register<Structure<?>> event) {
@@ -45,7 +48,7 @@ public class AddonStructures {
 
         setupMapSpacingAndLand(SHRINE.get(), new StructureSeparationSettings(40, 20, 228001337), true);
 
-        registerConfiguredStructure(registry, CONFIGURED_SHRINE.get(),
+        registerConfiguredStructure(registry, CONFIGURED_SHRINE,
                 new ResourceLocation(AddonMain.MOD_ID, "configured_shrine"), SHRINE.get(),
                 SHRINE_BIOMES.and(b -> AddonConfig.getCommonConfigInstance(false).enableShrineGeneration.get()));
     }
@@ -82,13 +85,5 @@ public class AddonStructures {
                 structureMap.put(structure, structureSeparationSettings);
             }
         });
-    }
-    private static void registerConfiguredStructure(Registry<StructureFeature<?, ?>> registry, StructureFeature<?, ?> configured,
-                                                    ResourceLocation resLoc, Structure<?> structure, @Nullable Predicate<BiomeLoadingEvent> structureBiome) {
-        Registry.register(registry, resLoc, configured);
-        CommonReflection.flatGenSettingsStructures().put(structure, configured);
-        if (structureBiome != null) {
-            ForgeBusEventSubscriber.structureBiomes.put(() -> configured, structureBiome);
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.dikiytechies.joker.entity.mob;
 
+import com.dikiytechies.joker.AddonConfig;
 import com.dikiytechies.joker.client.ui.screen.EffectSelectionScreen;
 import com.dikiytechies.joker.init.AddonItems;
 import com.dikiytechies.joker.init.Sounds;
@@ -132,7 +133,8 @@ public class JokerIggyEntity extends MobEntity implements INPC, IAnimatable, IEn
         if (this.isCoughing && ticksLeft == 0) {
             isCoughing = false;
             ItemStack maskStack = new ItemStack(AddonItems.MASK.get());
-            maskStack.enchant(Enchantments.BINDING_CURSE, 1);
+            if (AddonConfig.getCommonConfigInstance(false).enableMaskBinding.get())
+                maskStack.enchant(Enchantments.BINDING_CURSE, 1);
             ItemEntity mask = new ItemEntity(level, this.getX(), this.getY(), this.getZ(), maskStack);
             float f = -MathHelper.sin(this.getRotationVector().y * ((float)Math.PI / 180F)) * MathHelper.cos(this.getRotationVector().x * ((float)Math.PI / 180F));
             float f1 = -MathHelper.sin((this.getRotationVector().x + 0) * ((float)Math.PI / 180F));

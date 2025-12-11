@@ -78,6 +78,7 @@ public class AddonConfig {
     }
 
     public static class Common {
+        //fuh no, too tired to do a bitpacking
         public final ForgeConfigSpec.BooleanValue enableShrineGeneration;
         public final ForgeConfigSpec.BooleanValue enableMaskBinding;
         private boolean loaded = false;

@@ -1,13 +1,13 @@
 {
   "name": "joker:shrine/start_pool",
   "fallback": "minecraft:empty",
-  "elements": {
+  "elements": [{
     "weight": 1,
     "element": {
       "location": "joker:shrine",
       "processors": "minecraft:empty",
       "projection": "rigid",
-      "element_type": "minecraft:simple_pool_element"
+      "element_type": "minecraft:single_pool_element"
     }
-  }
+  }]
 }
