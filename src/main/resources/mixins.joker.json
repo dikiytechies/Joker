@@ -4,7 +4,7 @@
   "refmap": "mixins.joker.refmap.json",
   "minVersion": "0.8",
   "mixins": [
-    "ClientEventHandlerMixin",
+    "CustomVillagerTradesMixin",
     "EffectMixin",
     "FoodStatsMixin",
     "GameplayEventHandlerMixin",
@@ -25,7 +25,6 @@
     "PillarmanBladeDashAttackMixin",
     "PillarmanBladesBarrageMixin",
     "PillarmanBladeSlashMixin",
-    "PillarmanBladesLayerMixin",
     "PillarmanDataMixin",
     "PillarmanLayerMixin",
     "PillarmanLightFlashMixin",
@@ -38,5 +37,7 @@
     "ZombieDevourMixin"
   ],
   "client": [
+    "ClientEventHandlerMixin",
+    "PillarmanBladesLayerMixin"
   ]
 }
