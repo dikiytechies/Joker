@@ -34,5 +34,8 @@
   },
   "cough": {
     "sounds": ["joker:cough", "joker:cough_2", "joker:cough_3", "joker:cough_4"]
+  },
+  "map_bought_desert": {
+    "sounds": ["joker:map_bought_desert"]
   }
 }

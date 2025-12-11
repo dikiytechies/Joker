@@ -37,4 +37,7 @@ public class Sounds {
 
     public static final RegistryObject<SoundEvent> COUGH = SOUNDS.register("cough",
             () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "cough")));
+
+    public static final RegistryObject<SoundEvent> MAP_BOUGHT_DESERT = SOUNDS.register("map_bought_desert",
+            () -> new SoundEvent(new ResourceLocation(AddonMain.MOD_ID, "map_bought_desert")));
 }

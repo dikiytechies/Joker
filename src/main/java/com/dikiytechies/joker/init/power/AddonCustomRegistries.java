@@ -3,7 +3,6 @@ package com.dikiytechies.joker.init.power;
 import com.dikiytechies.joker.init.*;
 import com.dikiytechies.joker.init.power.non_stand.joker.JokerPowerInit;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 public class AddonCustomRegistries {
     public static void initCustomRegistries(IEventBus modEventBus) {

@@ -2,7 +2,6 @@ package com.dikiytechies.joker.client;
 
 import com.dikiytechies.joker.AddonMain;
 import com.dikiytechies.joker.init.AddonStatusEffects;
-import com.github.standobyte.jojo.client.ClientUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.renderer.entity.model.PlayerModel;

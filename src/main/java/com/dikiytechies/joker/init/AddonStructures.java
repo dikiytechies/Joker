@@ -2,18 +2,13 @@ package com.dikiytechies.joker.init;
 
 import com.dikiytechies.joker.AddonConfig;
 import com.dikiytechies.joker.AddonMain;
-import com.dikiytechies.joker.util.ForgeBusEventSubscriber;
 import com.dikiytechies.joker.world.gen.structures.JokerShrineStructure;
-import com.github.standobyte.jojo.util.mc.reflection.CommonReflection;
-import com.github.standobyte.jojo.world.gen.ConfiguredStructureSupplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.WorldGenRegistries;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.FlatGenerationSettings;
-import net.minecraft.world.gen.feature.IFeatureConfig;
 import net.minecraft.world.gen.feature.NoFeatureConfig;
 import net.minecraft.world.gen.feature.StructureFeature;
 import net.minecraft.world.gen.feature.structure.Structure;
@@ -28,7 +23,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -46,7 +40,7 @@ public class AddonStructures {
     public static final void afterStructuresRegister(RegistryEvent.Register<Structure<?>> event) {
         Registry<StructureFeature<?, ?>> registry = WorldGenRegistries.CONFIGURED_STRUCTURE_FEATURE;
 
-        setupMapSpacingAndLand(SHRINE.get(), new StructureSeparationSettings(40, 20, 228001337), true);
+        setupMapSpacingAndLand(SHRINE.get(), new StructureSeparationSettings(40, 20, 228001337), false);
 
         registerConfiguredStructure(registry, CONFIGURED_SHRINE,
                 new ResourceLocation(AddonMain.MOD_ID, "configured_shrine"), SHRINE.get(),

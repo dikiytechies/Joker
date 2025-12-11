@@ -21,7 +21,6 @@ import net.minecraft.world.gen.feature.NoFeatureConfig;
 import net.minecraft.world.gen.feature.jigsaw.JigsawManager;
 import net.minecraft.world.gen.feature.structure.*;
 import net.minecraft.world.gen.feature.template.TemplateManager;
-import org.apache.logging.log4j.Level;
 
 public class JokerShrineStructure extends Structure<NoFeatureConfig> {
     public JokerShrineStructure(Codec<NoFeatureConfig> codec) {
@@ -31,9 +30,9 @@ public class JokerShrineStructure extends Structure<NoFeatureConfig> {
     public GenerationStage.Decoration step() { return GenerationStage.Decoration.SURFACE_STRUCTURES; }
     @Override
     protected boolean isFeatureChunk(ChunkGenerator chunkGenerator, BiomeProvider biomeSource, long seed, SharedSeedRandom chunkRandom, int chunkX, int chunkZ, Biome biome, ChunkPos chunkPos, NoFeatureConfig featureConfig) {
-        BlockPos chunkCenter = new BlockPos(chunkX << 4 + 7, 0, chunkZ << 4 + 7);
+        BlockPos chunkCenter = new BlockPos((chunkX << 4) + 7, 0, (chunkZ << 4) + 7);
 
-        int landHeight = chunkGenerator.getFirstOccupiedHeight(chunkCenter.getX(), chunkCenter.getZ(), Heightmap.Type.WORLD_SURFACE_WG) + 1; // don't forget to move the pointer above ground
+        int landHeight = chunkGenerator.getFirstOccupiedHeight(chunkCenter.getX(), chunkCenter.getZ(), Heightmap.Type.WORLD_SURFACE_WG); // don't forget to move the pointer above ground
         IBlockReader columnOfBlocks = chunkGenerator.getBaseColumn(chunkCenter.getX(), chunkCenter.getZ());
         BlockState topBlock = columnOfBlocks.getBlockState(chunkCenter.above(landHeight));
 
@@ -71,7 +70,7 @@ public class JokerShrineStructure extends Structure<NoFeatureConfig> {
             int xOffset = centerPos.getX() - structureCenter.getX();
             int zOffset = centerPos.getZ() - structureCenter.getZ();
             for (StructurePiece piece: this.pieces)
-                piece.move(xOffset, 0, zOffset);
+                piece.move(xOffset, 1, zOffset);
             this.calculateBoundingBox();
         }
     }
